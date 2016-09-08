@@ -1,0 +1,569 @@
+{
+  "questions": [
+    {
+      "question_id": 1,
+      "question": "Day/Night",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "11 PM to 05 AM - Night"
+        },
+        {
+          "option": "05 AM to 07 PM - Day"
+        },
+        {
+          "option": "07 PM to 11 PM - Evening"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 2,
+      "question": "CT Availability",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        },
+        {
+          "option": "N/A"
+        }
+      ],
+      "image_required": true,
+      "comment_required": false,
+      "ct_question": true,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 3,
+      "question": "CT Uniform",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        },
+        {
+          "option": "N/A"
+        }
+      ],
+      "image_required": false,
+      "comment_required": true,
+      "comment_required_for": "No",
+      "comment_hint": "Put comments",
+      "ct_question": true,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 4,
+      "question": "CT wearing shoes",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        },
+        {
+          "option": "N/A"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": true,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 5,
+      "question": "CT wearing ID card",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        },
+        {
+          "option": "N/A"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": true,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 6,
+      "question": "CT Checking ID-Card of all Non Customer Visitors i.e FLM, Vendor/Bank staff",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        },
+        {
+          "option": "N/A"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": true,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 7,
+      "question": "CT working hours",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Shift - 8 Hours"
+        },
+        {
+          "option": "Shift - 12 Hours"
+        },
+        {
+          "option": "Other"
+        }
+      ],
+      "image_required": false,
+      "comment_required": true,
+      "comment_required_for": "Other",
+      "comment_hint": "Put comments",
+      "ct_question": true,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 8,
+      "question": "Whether CT is outside of ATM room when customer is transacting (Yes/No)",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 9,
+      "question": "Has CT undergone training",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 10,
+      "question": "List of important telephone numbers availability with CT",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 11,
+      "question": "CT is trained to use Fire Extinguisher",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 12,
+      "question": " Register Maintained",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": true,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 13,
+      "question": "Frequency of Supervisor Visits/Audits at site",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Daily"
+        },
+        {
+          "option": "Alternate Day"
+        },
+        {
+          "option": "Others"
+        }
+      ],
+      "image_required": false,
+      "comment_required": true,
+      "comment_required_for": "Others",
+      "comment_hint": "Specify",
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 14,
+      "question": "Site Phone Availability",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": true,
+      "comment_required_for": "Yes",
+      "comment_hint": "Provide Number",
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 15,
+      "question": "Customer Lobby  Cleaned",
+      "question_type": "Rating",
+      "options": [],
+      "image_required": true,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 16,
+      "question": "Back Room  Cleaned",
+      "question_type": "Rating",
+      "options": [],
+      "image_required": true,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 17,
+      "question": "Glow Shine Board & Lolly Pop Clean",
+      "question_type": "Rating",
+      "options": [],
+      "image_required": true,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 18,
+      "question": "HK Material Available",
+      "question_type": "Hybrid",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": true,
+      "extra_options_required_for": "Yes",
+      "extra_options": [
+        {
+          "extra_option": "Broom"
+        },
+        {
+          "extra_option": "Phenyl"
+        },
+        {
+          "extra_option": "Room Freshner"
+        },
+        {
+          "extra_option": "Cleaning cloth"
+        }
+      ]
+    },
+    {
+      "question_id": 19,
+      "question": "AC Working",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Both AC working"
+        },
+        {
+          "option": "Only 1 AC working"
+        },
+        {
+          "option": "Both AC faulty"
+        },
+        {
+          "option": "Water Leakage Issue"
+        },
+        {
+          "option": "Cooling Inadequate"
+        },
+        {
+          "option": "No AC on Site"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "comment_required_for": "",
+      "comment_hint": "Specify AC make",
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 20,
+      "question": "UPS Working",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 21,
+      "question": "UPS Back up status",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "< 30 Min"
+        },
+        {
+          "option": "30 - 60 Min"
+        },
+        {
+          "option": "60 - 120 Min"
+        },
+        {
+          "option": "> 2 Hours"
+        }
+      ],
+      "image_required": false,
+      "comment_required": true,
+      "comment_required_for": "> 2 Hours",
+      "comment_hint": "Specify",
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 22,
+      "question": "No of batteries available at site",
+      "question_type": "Blank",
+      "options": [],
+      "image_required": false,
+      "comment_required": true,
+      "comment_required_for": "",
+      "comment_hint": "Put comments",
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 23,
+      "question": "Security Equipment Available E.g (Alarms, Smoke Alarms, Hooters)",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        },
+        {
+          "option": "N/A"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 24,
+      "question": "All Lights (Working/Not Working)",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": true,
+      "comment_required_for": "No",
+      "comment_hint": "Put comments",
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 25,
+      "question": "Glow Sign Board (Working/Not Working)",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 26,
+      "question": "All Door/Locks (Working/Not working)",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": true,
+      "comment_required_for": "No",
+      "comment_hint": "Put comments",
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 27,
+      "question": "Bank Logo Sheet on Cheque Drop Box (Available/Not available)",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 28,
+      "question": "Genset (Working/Not working)",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Not Available"
+        },
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        },
+        {
+          "option": "No Fuel"
+        }
+      ],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 29,
+      "question": "Fire Extinguishers Status",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Not availble"
+        },
+        {
+          "option": "Available - Green"
+        },
+        {
+          "option": "Available - Red"
+        },
+        {
+          "option": "Available - Expired by Date"
+        }
+      ],
+      "image_required": true,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 30,
+      "question": "Other Remarks",
+      "question_type": "Blank",
+      "options": [],
+      "image_required": false,
+      "comment_required": false,
+      "ct_question": false,
+      "extra_options_present": false
+    }
+  ]
+}

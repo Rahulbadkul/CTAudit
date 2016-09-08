@@ -169,7 +169,7 @@ public class LocationService extends Service implements LocationListener {
                     return params;
                 }
             };
-            Utils.sendRequest (strRequest1);
+            Utils.sendRequest (strRequest1, 30);
         } else
             db.createAuditorLocation (auditorLocation);
     }
@@ -297,7 +297,7 @@ public class LocationService extends Service implements LocationListener {
                         return params;
                     }
                 };
-                Utils.sendRequest (strRequest1);
+                Utils.sendRequest (strRequest1, 30);
             } else {
                 Utils.showLog (Log.WARN, AppConfigTags.TAG, "If no internet connection", true);
             }

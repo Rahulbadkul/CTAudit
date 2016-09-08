@@ -1,24 +1,22 @@
 package com.actiknow.ctaudit.model;
 
-import android.util.Log;
-
-import com.actiknow.ctaudit.utils.Utils;
-
 public class Response {
-    private int response_id, switch_flag, question_id;
-    private String question, comment, image1, image2;
+    private int response_id, question_id;
+    private String question, question_type, response_text, extra_response_text, comment, image_str;
 
     public Response () {
     }
 
-    public Response (int response_id, int question_id, String question, int switch_flag, String comment, String image1, String image2) {
+    public Response (int response_id, int question_id, String question, String question_type,
+                     String response_text, String extra_response_text, String comment, String image_str) {
         this.response_id = response_id;
         this.question_id = question_id;
         this.question = question;
-        this.switch_flag = switch_flag;
+        this.question_type = question_type;
+        this.response_text = response_text;
+        this.extra_response_text = extra_response_text;
         this.comment = comment;
-        this.image1 = image1;
-        this.image2 = image2;
+        this.image_str = image_str;
     }
 
     public int getResponse_id () {
@@ -27,7 +25,6 @@ public class Response {
 
     public void setResponse_id (int response_id) {
         this.response_id = response_id;
-        Utils.showLog (Log.DEBUG, "response_id", "" + response_id, false);
     }
 
     public int getQuestion_id () {
@@ -36,16 +33,6 @@ public class Response {
 
     public void setQuestion_id (int question_id) {
         this.question_id = question_id;
-        Utils.showLog (Log.DEBUG, "question_id", "" + question_id, false);
-    }
-
-    public int getSwitch_flag () {
-        return switch_flag;
-    }
-
-    public void setSwitch_flag (int switch_flag) {
-        this.switch_flag = switch_flag;
-        Utils.showLog (Log.DEBUG, "switch_flag", "" + switch_flag, false);
     }
 
     public String getQuestion () {
@@ -54,7 +41,30 @@ public class Response {
 
     public void setQuestion (String question) {
         this.question = question;
-        Utils.showLog (Log.DEBUG, "question", question, false);
+    }
+
+    public String getQuestion_type () {
+        return question_type;
+    }
+
+    public void setQuestion_type (String question_type) {
+        this.question_type = question_type;
+    }
+
+    public String getResponse_text () {
+        return response_text;
+    }
+
+    public void setResponse_text (String response_text) {
+        this.response_text = response_text;
+    }
+
+    public String getExtra_response_text () {
+        return extra_response_text;
+    }
+
+    public void setExtra_response_text (String extra_response_text) {
+        this.extra_response_text = extra_response_text;
     }
 
     public String getComment () {
@@ -63,24 +73,13 @@ public class Response {
 
     public void setComment (String comment) {
         this.comment = comment;
-        Utils.showLog (Log.DEBUG, "comment", comment, false);
     }
 
-    public String getImage1 () {
-        return image1;
+    public String getImage_str () {
+        return image_str;
     }
 
-    public void setImage1 (String image1) {
-        this.image1 = image1;
-        Utils.showLog (Log.DEBUG, "image1", image1, false);
-    }
-
-    public String getImage2 () {
-        return image2;
-    }
-
-    public void setImage2 (String image2) {
-        this.image2 = image2;
-        Utils.showLog (Log.DEBUG, "image2", image2, false);
+    public void setImage_str (String image_str) {
+        this.image_str = image_str;
     }
 }

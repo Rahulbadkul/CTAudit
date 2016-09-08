@@ -6,6 +6,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +24,7 @@ import com.actiknow.ctaudit.utils.AppConfigTags;
 import com.actiknow.ctaudit.utils.Constants;
 import com.actiknow.ctaudit.utils.Utils;
 
+import java.io.File;
 import java.util.List;
 
 public class AllAtmAdapter extends BaseAdapter {
@@ -121,6 +125,8 @@ public class AllAtmAdapter extends BaseAdapter {
 									mIntent = new Intent ();
 									mIntent.setPackage (defaultCameraPackage);
 									mIntent.setAction (android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+									File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
+									mIntent.putExtra (MediaStore.EXTRA_OUTPUT, Uri.fromFile (f));
 								}
 								if (mIntent.resolveActivity (activity.getPackageManager ()) != null)
 									activity.startActivityForResult (mIntent, MainActivity.GEO_IMAGE_REQUEST_CODE);

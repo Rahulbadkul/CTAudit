@@ -7,9 +7,11 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -57,6 +59,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -100,11 +103,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (Constants.auditor_id_main != 0) {
             getAtmListFromServer ();
-            getQuestionListFromServer ();
+            getQuestionsFromJSON ();
+//            getQuestionListFromServer ();
             if (db.getAuditorLocationCount () > 0)
                 uploadStoredAuditorLocationToServer ();
-            if (db.getReportCount () > 0)
-                uploadStoredReportsToServer ();
+//            if (db.getReportCount () > 0)
+//                uploadStoredReportsToServer ();
         }
         db.closeDB ();
     }
@@ -124,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
 
         super.onResume ();
         if (Constants.auditor_id_main != 0) {
-            getAtmListFromServer ();
-            getQuestionListFromServer ();
+//            getAtmListFromServer ();
+//            getQuestionListFromServer ();
         }
         //     recreate ();
         //    Constants.questionsList.clear ();
@@ -200,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                 // Otherwise, set the URL to null.
                 Uri.parse ("http://host/path"),
                 // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse ("android-app://com.actiknow.liveaudit/http/host/path")
+                Uri.parse ("android-app://com.actiknow.ctaudit/http/host/path")
         );
         AppIndex.AppIndexApi.start (client, viewAction);
     }
@@ -219,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                 // Otherwise, set the URL to null.
                 Uri.parse ("http://host/path"),
                 // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse ("android-app://com.actiknow.liveaudit/http/host/path")
+                Uri.parse ("android-app://com.actiknow.ctaudit/http/host/path")
         );
         AppIndex.AppIndexApi.end (client, viewAction);
         client.disconnect ();
@@ -423,7 +427,7 @@ public class MainActivity extends AppCompatActivity {
                     return params;
                 }
             };
-            Utils.sendRequest (strRequest);
+            Utils.sendRequest (strRequest, 30);
 
         } else {
             progressBar.setVisibility (View.GONE);
@@ -442,6 +446,57 @@ public class MainActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged ();
     }
 
+    private void getQuestionsFromJSON () {
+        Constants.questionsList.clear ();
+        String response = Utils.getQuestionsJSONFromAsset (MainActivity.this);
+        Utils.showLog (Log.INFO, AppConfigTags.SERVER_RESPONSE, response, true);
+        if (response != null) {
+            try {
+                JSONObject jsonObj = new JSONObject (response);
+                JSONArray jsonArray = jsonObj.getJSONArray (AppConfigTags.QUESTIONS);
+                for (int i = 0; i < jsonArray.length (); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject (i);
+                    Question question = new Question ();
+                    question.setQuestion_id (jsonObject.getInt (AppConfigTags.QUESTION_ID));
+                    question.setQuestion (jsonObject.getString (AppConfigTags.QUESTION));
+                    question.setQuestion_type (jsonObject.getString ("question_type"));
+                    JSONArray jsonArrayOptions = jsonObject.getJSONArray ("options");
+
+                    for (int j = 0; j < jsonArrayOptions.length (); j++) {
+                        JSONObject jsonObject1 = jsonArrayOptions.getJSONObject (j);
+                        question.setOptionInList (jsonObject1.getString ("option"));
+                    }
+
+                    question.setImage_required (jsonObject.getBoolean ("image_required"));
+                    question.setComment_required (jsonObject.getBoolean ("comment_required"));
+                    if (jsonObject.getBoolean ("comment_required")) {
+                        question.setComment_required_for (jsonObject.getString ("comment_required_for"));
+                    }
+
+                    question.setCt_question (jsonObject.getBoolean ("ct_question"));
+                    question.setExtra_options_present (jsonObject.getBoolean ("extra_options_present"));
+                    if (jsonObject.getBoolean ("extra_options_present")) {
+                        question.setExtra_option_required_for (jsonObject.getString ("extra_options_required_for"));
+                        JSONArray jsonArrayExtraOptions = jsonObject.getJSONArray ("extra_options");
+
+                        for (int k = 0; k < jsonArrayExtraOptions.length (); k++) {
+                            JSONObject jsonObject2 = jsonArrayExtraOptions.getJSONObject (k);
+                            question.setExtra_optionInList (jsonObject2.getString ("extra_option"));
+                        }
+
+                    }
+                    Constants.questionsList.add (question);
+//                                        db.createQuestion (question);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace ();
+            }
+        } else {
+            Utils.showLog (Log.WARN, AppConfigTags.SERVER_RESPONSE, AppConfigTags.DIDNT_RECEIVE_ANY_DATA_FROM_SERVER, true);
+        }
+    }
+
+
     private void getQuestionListFromServer () {
         if (NetworkConnection.isNetworkAvailable (this)) {
             Utils.showLog (Log.INFO, AppConfigTags.URL, AppConfigURL.URL_GETALLQUESTIONS, true);
@@ -449,7 +504,7 @@ public class MainActivity extends AppCompatActivity {
                     new Response.Listener<String> () {
                         @Override
                         public void onResponse (String response) {
-                            db.deleteAllQuestion ();
+//                            db.deleteAllQuestion ();
                             Constants.questionsList.clear ();
                             Utils.showLog (Log.INFO, AppConfigTags.SERVER_RESPONSE, response, true);
                             if (response != null) {
@@ -461,8 +516,33 @@ public class MainActivity extends AppCompatActivity {
                                         Question question = new Question ();
                                         question.setQuestion_id (jsonObject.getInt (AppConfigTags.QUESTION_ID));
                                         question.setQuestion (jsonObject.getString (AppConfigTags.QUESTION));
+                                        question.setQuestion_type (jsonObject.getString ("question_type"));
+                                        JSONArray jsonArrayOptions = jsonObject.getJSONArray ("options");
+
+                                        for (int j = 0; j < jsonArrayOptions.length (); j++) {
+                                            JSONObject jsonObject1 = jsonArrayOptions.getJSONObject (j);
+                                            question.setOptionInList (jsonObject1.getString ("option"));
+                                        }
+
+                                        question.setImage_required (jsonObject.getBoolean ("image_required"));
+                                        question.setComment_required (jsonObject.getBoolean ("comment_required"));
+                                        if (jsonObject.getBoolean ("comment_required")) {
+                                            question.setComment_required_for (jsonObject.getString ("comment_required_for"));
+                                        }
+
+                                        question.setCt_question (jsonObject.getBoolean ("ct_question"));
+                                        question.setExtra_options_present (jsonObject.getBoolean ("extra_options_present"));
+                                        if (jsonObject.getBoolean ("extra_options_present")) {
+                                            JSONArray jsonArrayExtraOptions = jsonObject.getJSONArray ("extra_options");
+
+                                            for (int k = 0; k < jsonArrayOptions.length (); k++) {
+                                                JSONObject jsonObject2 = jsonArrayExtraOptions.getJSONObject (k);
+                                                question.setExtra_optionInList (jsonObject2.getString ("extra_option"));
+                                            }
+
+                                        }
                                         Constants.questionsList.add (question);
-                                        db.createQuestion (question);
+//                                        db.createQuestion (question);
                                     }
                                 } catch (JSONException e) {
                                     e.printStackTrace ();
@@ -476,23 +556,25 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onErrorResponse (VolleyError error) {
                             Utils.showLog (Log.ERROR, AppConfigTags.VOLLEY_ERROR, error.toString (), true);
-                            getQuestionListFromLocalDatabase ();
+//                            getQuestionListFromLocalDatabase ();
                         }
                     });
-            Utils.sendRequest (strRequest1);
+            Utils.sendRequest (strRequest1, 30);
         } else {
-            getQuestionListFromLocalDatabase ();
+            Utils.showLog (Log.ERROR, AppConfigTags.VOLLEY_ERROR, "No internet connection", true);
+//            getQuestionListFromLocalDatabase ();
         }
     }
 
-    private void getQuestionListFromLocalDatabase () {
-        Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "Getting all the questions from local database", true);
-        Constants.questionsList.clear ();
-        List<Question> allQuestions = db.getAllQuestions ();
-        for (Question question : allQuestions)
-            Constants.questionsList.add (question);
-    }
-
+    /*
+        private void getQuestionListFromLocalDatabase () {
+            Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "Getting all the questions from local database", true);
+            Constants.questionsList.clear ();
+            List<Question> allQuestions = db.getAllQuestions ();
+            for (Question question : allQuestions)
+                Constants.questionsList.add (question);
+        }
+    */
     private void showEnterManuallyDialog () {
         Button btEnterManuallyContinue;
         final EditText etEnterManuallyAtmId;
@@ -613,11 +695,10 @@ public class MainActivity extends AppCompatActivity {
                         params.put (AppConfigTags.ATM_UNIQUE_ID, finalReport.getAtm_unique_id ());
                         params.put (AppConfigTags.ATM_AGENCY_ID, String.valueOf (finalReport.getAgency_id ()));
                         params.put (AppConfigTags.AUDITOR_ID, String.valueOf (finalReport.getAuditor_id ()));
-                        params.put (AppConfigTags.ISSUES, finalReport.getIssues_json_array ());
+                        params.put (AppConfigTags.ISSUES, finalReport.getResponses_json_array ());
                         params.put (AppConfigTags.GEO_IMAGE, finalReport.getGeo_image_string ());
                         params.put (AppConfigTags.LATITUDE, finalReport.getLatitude ());
                         params.put (AppConfigTags.LONGITUDE, finalReport.getLongitude ());
-                        params.put (AppConfigTags.RATING, String.valueOf (finalReport.getRating ()));
                         params.put (AppConfigTags.SIGN_IMAGE, finalReport.getSignature_image_string ());
 
                         Log.e (AppConfigTags.ATM_ID, String.valueOf (finalReport.getAtm_id ()));
@@ -627,14 +708,13 @@ public class MainActivity extends AppCompatActivity {
 //                        Log.e (AppConfigTags.GEO_IMAGE, finalReport.getGeo_image_string ());
                         Log.e (AppConfigTags.LATITUDE, finalReport.getLatitude ());
                         Log.e (AppConfigTags.LONGITUDE, finalReport.getLongitude ());
-                        Log.e (AppConfigTags.RATING, String.valueOf (finalReport.getRating ()));
 //                        Log.e (AppConfigTags.SIGN_IMAGE, finalReport.getSignature_image_string ());
 
 //                        Utils.showLog (Log.INFO, AppConfigTags.PARAMETERS_SENT_TO_THE_SERVER, "" + params, true);
                         return params;
                     }
                 };
-                Utils.sendRequest (strRequest1);
+                Utils.sendRequest (strRequest1, 120);
             }
         }
     }
@@ -687,7 +767,7 @@ public class MainActivity extends AppCompatActivity {
                         return params;
                     }
                 };
-                Utils.sendRequest (strRequest1);
+                Utils.sendRequest (strRequest1, 30);
             } else {
                 Utils.showLog (Log.WARN, AppConfigTags.TAG, "If no internet connection", true);
             }
@@ -700,11 +780,18 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == GEO_IMAGE_REQUEST_CODE) {
             switch (resultCode) {
                 case RESULT_OK:
-                    Bitmap bp = (Bitmap) data.getExtras ().get ("data");
+                    File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
+
+                    Bitmap bp = null;
+                    if (f.exists ()) {
+                        bp = Utils.compressBitmap (BitmapFactory.decodeFile (f.getAbsolutePath ()), MainActivity.this);
+                    }
+
+//                    Bitmap bp = (Bitmap) data.getExtras ().get ("data");
                     String image = Utils.bitmapToBase64 (bp);
                     Constants.report.setGeo_image_string (image);
 
-                    Intent intent = new Intent (MainActivity.this, AllQuestionListActivity.class);
+                    Intent intent = new Intent (MainActivity.this, ViewPagerActivity.class);
                     startActivity (intent);
                     overridePendingTransition (R.anim.slide_in_right, R.anim.slide_out_left);
                     break;

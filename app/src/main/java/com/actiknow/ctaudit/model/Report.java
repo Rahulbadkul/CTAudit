@@ -6,20 +6,20 @@ import com.actiknow.ctaudit.utils.Utils;
 
 public class Report {
     private int report_id, atm_id, auditor_id, agency_id, rating;
-    private String atm_unique_id, issues_json_array, geo_image_string, latitude, longitude, signature_image_string;
+    private String atm_unique_id, responses_json_array, geo_image_string, latitude, longitude, signature_image_string;
 
     public Report () {
     }
 
-    public Report (int report_id, int atm_id, int auditor_id, int rating, int agency_id,
-                   String atm_unique_id, String issues_json_array, String geo_image_string,
+    public Report (int report_id, int atm_id, int auditor_id, int agency_id,
+                   String atm_unique_id, String responses_json_array, String geo_image_string,
                    String latitude, String longitude, String signature_image_string) {
         this.report_id = report_id;
         this.auditor_id = auditor_id;
         this.agency_id = agency_id;
         this.rating = rating;
         this.atm_unique_id = atm_unique_id;
-        this.issues_json_array = issues_json_array;
+        this.responses_json_array = responses_json_array;
         this.geo_image_string = geo_image_string;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -62,22 +62,13 @@ public class Report {
         Utils.showLog (Log.DEBUG, "agency_id", "" + agency_id, false);
     }
 
-    public int getRating () {
-        return rating;
+    public String getResponses_json_array () {
+        return responses_json_array;
     }
 
-    public void setRating (int rating) {
-        this.rating = rating;
-        Utils.showLog (Log.DEBUG, "agenid", "" + agency_id, false);
-    }
-
-    public String getIssues_json_array () {
-        return issues_json_array;
-    }
-
-    public void setIssues_json_array (String issues_json_array) {
-        this.issues_json_array = issues_json_array;
-        Utils.showLog (Log.DEBUG, "issues_json_array", issues_json_array, false);
+    public void setResponses_json_array (String responses_json_array) {
+        this.responses_json_array = responses_json_array;
+        Utils.showLog (Log.DEBUG, "responses_json_array", responses_json_array, false);
     }
 
     public String getAtm_unique_id () {

@@ -297,11 +297,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put (KEY_ATM_ID, report.getAtm_id ());
         values.put (KEY_ATM_UNIQUE_ID, report.getAtm_unique_id ());
         values.put (KEY_AUDITOR_ID, report.getAuditor_id ());
-        values.put (KEY_ISSUES_JSON, report.getIssues_json_array ());
+        values.put (KEY_ISSUES_JSON, report.getResponses_json_array ());
         values.put (KEY_GEO_IMAGE, report.getGeo_image_string ());
         values.put (KEY_LATITUDE, report.getLatitude ());
         values.put (KEY_LONGITUDE, report.getLongitude ());
-        values.put (KEY_RATING, report.getRating ());
         values.put (KEY_SIGN_IMAGE, report.getSignature_image_string ());
         values.put (KEY_CREATED_AT, getDateTime ());
         long report_id = db.insert (TABLE_REPORT, null, values);
@@ -321,11 +320,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         report.setAtm_id (c.getInt (c.getColumnIndex (KEY_ATM_ID)));
         report.setAtm_unique_id (c.getString (c.getColumnIndex (KEY_ATM_UNIQUE_ID)));
         report.setAuditor_id (c.getInt (c.getColumnIndex (KEY_AUDITOR_ID)));
-        report.setIssues_json_array (c.getString (c.getColumnIndex (KEY_ISSUES_JSON)));
+        report.setResponses_json_array (c.getString (c.getColumnIndex (KEY_ISSUES_JSON)));
         report.setGeo_image_string (c.getString (c.getColumnIndex (KEY_GEO_IMAGE)));
         report.setLatitude (c.getString (c.getColumnIndex (KEY_LATITUDE)));
         report.setLongitude (c.getString (c.getColumnIndex (KEY_LONGITUDE)));
-        report.setRating (c.getInt (c.getColumnIndex (KEY_RATING)));
         report.setSignature_image_string (c.getString (c.getColumnIndex (KEY_SIGN_IMAGE)));
         return report;
     }
@@ -345,11 +343,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 report.setAtm_id (c.getInt (c.getColumnIndex (KEY_ATM_ID)));
                 report.setAtm_unique_id (c.getString (c.getColumnIndex (KEY_ATM_UNIQUE_ID)));
                 report.setAuditor_id (c.getInt (c.getColumnIndex (KEY_AUDITOR_ID)));
-                report.setIssues_json_array (c.getString (c.getColumnIndex (KEY_ISSUES_JSON)));
+                report.setResponses_json_array (c.getString (c.getColumnIndex (KEY_ISSUES_JSON)));
                 report.setGeo_image_string (c.getString (c.getColumnIndex (KEY_GEO_IMAGE)));
                 report.setLatitude (c.getString (c.getColumnIndex (KEY_LATITUDE)));
                 report.setLongitude (c.getString (c.getColumnIndex (KEY_LONGITUDE)));
-                report.setRating (c.getInt (c.getColumnIndex (KEY_RATING)));
                 report.setSignature_image_string (c.getString (c.getColumnIndex (KEY_SIGN_IMAGE)));
                 reports.add (report);
             } while (c.moveToNext ());
@@ -375,8 +372,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put (KEY_ATM_UNIQUE_ID, report.getAtm_unique_id ());
         values.put (KEY_AGENCY_ID, report.getAgency_id ());
         values.put (KEY_AUDITOR_ID, report.getAuditor_id ());
-        values.put (KEY_ISSUES_JSON, report.getIssues_json_array ());
-        values.put (KEY_RATING, report.getRating ());
+        values.put (KEY_ISSUES_JSON, report.getResponses_json_array ());
         values.put (KEY_GEO_IMAGE, report.getGeo_image_string ());
         values.put (KEY_LATITUDE, report.getLatitude ());
         values.put (KEY_LONGITUDE, report.getLongitude ());

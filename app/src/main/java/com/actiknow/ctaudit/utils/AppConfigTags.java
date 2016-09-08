@@ -29,8 +29,7 @@ public class AppConfigTags {
     public static final String AUDITOR_ID = "auditor_id";
     public static final String SWITCH_FLAG = "switch_flag";
     public static final String COMMENT = "comment";
-    public static final String IMAGE1 = "image1";
-    public static final String IMAGE2 = "image2";
+    public static final String IMAGE = "image";
     public static final String RATING = "rating";
 
     public static final String GEO_IMAGE = "geo_image";
@@ -49,5 +48,7 @@ public class AppConfigTags {
     public static final String TAG = "TAG";
     public static final String VOLLEY_ERROR = "VOLLEY ERROR";
     public static final String DATABASE_LOG = "DATABASE LOG";
+
+    public static final String PAGE_NUMBER = "PAGE_NUMBER";
 
 }

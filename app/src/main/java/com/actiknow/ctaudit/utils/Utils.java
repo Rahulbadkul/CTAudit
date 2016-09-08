@@ -19,17 +19,18 @@ import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actiknow.ctaudit.R;
 import com.actiknow.ctaudit.app.AppController;
-import com.actiknow.ctaudit.model.Response;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.toolbox.StringRequest;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -199,25 +200,75 @@ public class Utils {
         return false;
     }
 
-    public static void setSeekBar (SeekBar sbRating, TextView tvRatingNumber) {
-        int count = 0;
-        for (int i = 0; i < Constants.questionsList.size (); i++) {
-            Response response;
-            response = Constants.responseList.get (i);
-            count = count + response.getSwitch_flag ();
-        }
-        int rating = ((count) * 100) / Constants.questionsList.size ();
-        Utils.showLog (Log.DEBUG, AppConfigTags.RATING, "" + rating, true);
-//        tvRatingNumber.setText (String.valueOf (rating / 10));
-        tvRatingNumber.setText (String.valueOf (rating) + "%");
-        sbRating.setProgress (rating);
-    }
-
-    public static void sendRequest (StringRequest strRequest) {
+    public static void sendRequest (StringRequest strRequest, int timeout_seconds) {
         strRequest.setShouldCache (false);
+        int timeout = timeout_seconds * 1000;
         AppController.getInstance ().addToRequestQueue (strRequest);
-        strRequest.setRetryPolicy (new DefaultRetryPolicy (30000,
+        strRequest.setRetryPolicy (new DefaultRetryPolicy (timeout,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
     }
+
+    public static Bitmap compressBitmap (Bitmap bitmap, Activity activity) {
+        Bitmap decoded = null;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream ();
+            if (NetworkConnection.isNetworkAvailable (activity)) {
+                bitmap.compress (Bitmap.CompressFormat.JPEG, 10, out);
+            } else {
+                bitmap.compress (Bitmap.CompressFormat.JPEG, 10, out);
+            }
+            decoded = Utils.scaleDown (BitmapFactory.decodeStream (new ByteArrayInputStream (out.toByteArray ())), 320, true);
+        } catch (Exception e) {
+            e.printStackTrace ();
+            Utils.showLog (Log.ERROR, "EXCEPTION", e.getMessage (), true);
+        }
+        return decoded;
+    }
+
+    public static Bitmap scaleDown (Bitmap realImage, float maxImageSize, boolean filter) {
+        float ratio = Math.min ((float) maxImageSize / realImage.getWidth (), (float) maxImageSize / realImage.getHeight ());
+        int width = Math.round ((float) ratio * realImage.getWidth ());
+        int height = Math.round ((float) ratio * realImage.getHeight ());
+        Bitmap newBitmap = Bitmap.createScaledBitmap (realImage, width, height, filter);
+        return newBitmap;
+    }
+
+    public static String getQuestionsJSONFromAsset (Activity activity) {
+        String json = null;
+        try {
+            InputStream is = activity.getAssets ().open ("questions.json");
+            int size = is.available ();
+            byte[] buffer = new byte[size];
+            is.read (buffer);
+            is.close ();
+            json = new String (buffer, "UTF-8");
+        } catch (IOException ex) {
+            ex.printStackTrace ();
+            return null;
+        }
+        return json;
+    }
+
+    public static void showValidationErrorDialog (final Activity activity, List<String> errors) {
+        AlertDialog.Builder builder = new AlertDialog.Builder (activity);
+
+        String error_message = "";
+        for (int i = 0; i < errors.size (); i++) {
+            error_message = android.text.TextUtils.join ("\n", errors);
+        }
+
+        builder.setMessage (error_message)
+                .setIcon (android.R.drawable.ic_dialog_alert)
+                .setTitle ("Validation Error")
+                .setCancelable (false)
+                .setPositiveButton ("OK", new DialogInterface.OnClickListener () {
+                    public void onClick (DialogInterface dialog, int id) {
+                        dialog.dismiss ();
+                    }
+                });
+        AlertDialog alert = builder.create ();
+        alert.show ();
+    }
+
 }
