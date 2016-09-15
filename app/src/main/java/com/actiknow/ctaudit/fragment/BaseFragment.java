@@ -60,7 +60,6 @@ import java.util.Map;
 public class BaseFragment extends android.support.v4.app.Fragment {
     public static boolean isLast = false;
     final int CAMERA_ACTIVITY = 1;
-    Bitmap bp = null;
     Bitmap bp1;
     Bitmap bptemp;
     DatabaseHandler db;
@@ -158,6 +157,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     rgOptions.setVisibility (View.GONE);
                     rlRating.setVisibility (View.VISIBLE);
                     llChecks.setVisibility (View.GONE);
+                    optionSelected = "1";
                     break;
                 case "Hybrid":
                     addRadioButtons (rgOptions, question.getOptions ());
@@ -191,7 +191,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         db.closeDB ();
         return view;
     }
-
 
     public void addRadioButtons (RadioGroup radioGroup, List<String> Options) {
 
@@ -252,7 +251,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onSaveInstanceState (Bundle outState) {
-        outState.putParcelable ("BitmapImage1", bp);
+        outState.putParcelable ("BitmapImage1", bp1);
         super.onSaveInstanceState (outState);
     }
 
@@ -382,6 +381,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     mIntent.setAction (android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                     File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
                     mIntent.putExtra (MediaStore.EXTRA_OUTPUT, Uri.fromFile (f));
+
                 }
                 if (mIntent.resolveActivity (getActivity ().getPackageManager ()) != null)
                     startActivityForResult (mIntent, CAMERA_ACTIVITY);
@@ -561,7 +561,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         });
     }
 
-
     private boolean validate () {
         boolean validate = true;
         List<String> error = new ArrayList<> ();
@@ -646,7 +645,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         return validate;
     }
 
-
     private void showSignatureDialog () {
         Button btSignCancel;
         Button btSignClear;
@@ -704,9 +702,9 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                                     JSONObject jsonObj = new JSONObject (response);
                                     switch (jsonObj.getInt (AppConfigTags.STATUS)) {
                                         case 0:
-//                                            db.createReport (report);
+                                            db.createReport (report);
                                             pDialog.dismiss ();
-                                            Utils.showOkDialog (getActivity (), "Some error occurred, Please try again after some time", true);
+                                            Utils.showOkDialog (getActivity (), "Some error occurred your responses have been saved offline and will be uploaded later", true);
                                             break;
                                         case 1:
                                             pDialog.dismiss ();
@@ -717,7 +715,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                                     e.printStackTrace ();
                                 }
                             } else {
-//                                db.createReport (report);
+                                db.createReport (report);
                                 Utils.showLog (Log.WARN, AppConfigTags.SERVER_RESPONSE, AppConfigTags.DIDNT_RECEIVE_ANY_DATA_FROM_SERVER, true);
                             }
                         }
@@ -729,7 +727,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                             pDialog.dismiss ();
                             Utils.showOkDialog (getActivity (), "Seems like there is an issue with the internet connection," +
                                     " your responses have been saved and will be uploaded once you are online", true);
-//                            db.createReport (report);
+                            db.createReport (report);
                         }
                     }) {
                 @Override
@@ -765,9 +763,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             pDialog.dismiss ();
             Utils.showOkDialog (getActivity (), "Seems like there is no internet connection, your responses have been saved" +
                     " and will be uploaded once you are online", true);
-//            db.createReport (report);
+            db.createReport (report);
         }
     }
-
-
 }

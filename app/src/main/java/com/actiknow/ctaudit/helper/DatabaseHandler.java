@@ -14,6 +14,9 @@ import com.actiknow.ctaudit.model.Report;
 import com.actiknow.ctaudit.utils.AppConfigTags;
 import com.actiknow.ctaudit.utils.Utils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -66,7 +69,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // Question table Create Statements
     private static final String CREATE_TABLE_QUESTIONS = "CREATE TABLE "
-            + TABLE_QUESTIONS + "(" + KEY_ID + " INTEGER PRIMARY KEY," +KEY_QUESTION
+            + TABLE_QUESTIONS + "(" + KEY_ID + " INTEGER PRIMARY KEY," + KEY_QUESTION
             + " TEXT," + KEY_CREATED_AT + " DATETIME" + ")";
 
     // ATM table create statement
@@ -78,9 +81,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Report table create statement
     private static final String CREATE_TABLE_REPORT = "CREATE TABLE " + TABLE_REPORT
             + "(" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + KEY_ATM_ID + " INTEGER," + KEY_ATM_UNIQUE_ID + " TEXT," + KEY_AGENCY_ID + " INTEGER,"
-            + KEY_AUDITOR_ID + " INTEGER," + KEY_ISSUES_JSON + " TEXT," + KEY_RATING + " INTEGER," +
-            KEY_GEO_IMAGE + " TEXT," + KEY_LATITUDE + " TEXT," + KEY_LONGITUDE + " TEXT," +
-            KEY_SIGN_IMAGE + " TEXT," + KEY_TIME + " TEXT," + KEY_CREATED_AT + " DATETIME" + ")";
+            + KEY_AUDITOR_ID + " INTEGER," + KEY_ISSUES_JSON + " BLOB," +
+            KEY_GEO_IMAGE + " BLOB," + KEY_LATITUDE + " TEXT," + KEY_LONGITUDE + " TEXT," +
+            KEY_SIGN_IMAGE + " BLOB," + KEY_TIME + " TEXT," + KEY_CREATED_AT + " DATETIME" + ")";
 
     // Auditor location table create statement
     private static final String CREATE_TABLE_AUDITOR_LOCATION = "CREATE TABLE " + TABLE_AUDITOR_LOCATION
@@ -290,6 +293,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // ------------------------ "reports" table methods ----------------//
 
     public long createReport (Report report) {
+
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace ();
+            Utils.showLog (Log.DEBUG, "EXCEPTION", e.getMessage (), true);
+        }
         SQLiteDatabase db = this.getWritableDatabase ();
         ContentValues values = new ContentValues ();
         Utils.showLog (Log.DEBUG, AppConfigTags.DATABASE_LOG, "Creating Report", false);
@@ -309,46 +319,199 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public Report getReport (long report_id) {
         SQLiteDatabase db = this.getReadableDatabase ();
-        String selectQuery = "SELECT  * FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
-        Utils.showLog (Log.DEBUG, AppConfigTags.DATABASE_LOG, "Get Report where ID = " + report_id, false);
+        String selectQuery = "SELECT " + KEY_ID + ", " + KEY_ATM_ID + ", " + KEY_AUDITOR_ID + ", " + KEY_AGENCY_ID + ", " + KEY_ATM_UNIQUE_ID + ", " +
+                KEY_GEO_IMAGE + ", " + KEY_LATITUDE + ", " + KEY_LONGITUDE + ", " + KEY_SIGN_IMAGE + " FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+        String selectQuery2 = "SELECT length(" + KEY_ISSUES_JSON + ") as length FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+        String selectQuery3 = "SELECT " + KEY_ISSUES_JSON + " FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+        Utils.showLog (Log.DEBUG, AppConfigTags.DATABASE_LOG, "Get Report where ID = " + report_id, true);
+//        Utils.showLog (Log.DEBUG, AppConfigTags.DATABASE_LOG, "query = " + selectQuery2, true);
         Cursor c = db.rawQuery (selectQuery, null);
+        Cursor c2 = db.rawQuery (selectQuery2, null);
+        Cursor c3 = db.rawQuery (selectQuery3, null);
         if (c != null)
             c.moveToFirst ();
+
+        if (c2 != null)
+            c2.moveToFirst ();
+
+        if (c3 != null)
+            c3.moveToFirst ();
+
+
+        String issue_json = "";
+
+        if (c2.getInt (c2.getColumnIndex ("length")) > 1000000) {
+            int i = c2.getInt (c2.getColumnIndex ("length")) / 10000000;
+
+
+            int j = 1;
+            Log.e ("value of i", " i = " + i);
+            for (int i2 = 0; i2 <= i; i2++) {
+                String query;
+                if (i2 == i) {
+                    int j2 = c2.getInt (c2.getColumnIndex ("length")) - i * 10000000;
+                    query = "SELECT substr (" + KEY_ISSUES_JSON + ", " + j + ", " + j2 + ") as str FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                } else {
+                    query = "SELECT substr (" + KEY_ISSUES_JSON + ", " + j + ", 1000000) as str FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                }
+                Log.e ("query", query);
+                Cursor cursor = db.rawQuery (query, null);
+                if (cursor != null)
+                    cursor.moveToFirst ();
+//                json_substr.add (cursor.getString (cursor.getColumnIndex ("str")));
+
+                Utils.showLog (Log.DEBUG, "IN FOR LOOP", (i2 + 1) + " iteration", true);
+
+                issue_json = issue_json.concat (cursor.getString (cursor.getColumnIndex ("str")));
+                j = j + 1000000;
+                Log.e ("SUB STRING", cursor.getString (cursor.getColumnIndex ("str")));
+            }
+
+
+            try {
+                JSONArray jsonArray = new JSONArray (issue_json);
+            } catch (JSONException e) {
+                e.printStackTrace ();
+            }
+
+
+//            for(int i3=0;i<json_substr.size ();i3++){
+//            }
+
+
+            /*
+            switch (i){
+                case 1:
+
+
+
+
+                    String selectQuery4 = "SELECT substr (" + KEY_ISSUES_JSON + ", 1, 1000000) as str1 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery5 = "SELECT substr (" + KEY_ISSUES_JSON + ", 1000001, 1000000) as str2 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    Cursor c4 = db.rawQuery (selectQuery4, null);
+                    Cursor c5 = db.rawQuery (selectQuery5, null);
+                    if (c4 != null)
+                        c4.moveToFirst ();
+                    if (c5 != null)
+                        c5.moveToFirst ();
+
+                    issue_json = c4.getString (c4.getColumnIndex ("str1")) + c5.getString (c5.getColumnIndex ("str2"));
+                    break;
+                case 2:
+                    String selectQuery6 = "SELECT substr (" + KEY_ISSUES_JSON + ", 1, 1000000) as str1 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery7 = "SELECT substr (" + KEY_ISSUES_JSON + ", 1000001, 1000000) as str2 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery8 = "SELECT substr (" + KEY_ISSUES_JSON + ", 2000001, 1000000) as str3 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    Cursor c6 = db.rawQuery (selectQuery6, null);
+                    Cursor c7 = db.rawQuery (selectQuery7, null);
+                    Cursor c8 = db.rawQuery (selectQuery8, null);
+                    if (c6 != null)
+                        c6.moveToFirst ();
+                    if (c7 != null)
+                        c7.moveToFirst ();
+                    if (c8 != null)
+                        c8.moveToFirst ();
+
+                    issue_json = c6.getString (c6.getColumnIndex ("str1")) + c7.getString (c7.getColumnIndex ("str2")) + c8.getString (c8.getColumnIndex ("str3"));
+
+                    break;
+                case 3:
+                    String selectQuery9 = "SELECT substr (" + KEY_ISSUES_JSON + ", 1, 1000000) as str1 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery10 = "SELECT substr (" + KEY_ISSUES_JSON + ", 1000001, 1000000) as str2 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery11 = "SELECT substr (" + KEY_ISSUES_JSON + ", 2000001, 1000000) as str3 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery12 = "SELECT substr (" + KEY_ISSUES_JSON + ", 3000001, 1000000) as str4 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    Cursor c9 = db.rawQuery (selectQuery9, null);
+                    Cursor c10 = db.rawQuery (selectQuery10, null);
+                    Cursor c11 = db.rawQuery (selectQuery11, null);
+                    Cursor c12 = db.rawQuery (selectQuery12, null);
+                    if (c9 != null)
+                        c9.moveToFirst ();
+                    if (c10 != null)
+                        c10.moveToFirst ();
+                    if (c11 != null)
+                        c11.moveToFirst ();
+                    if (c12 != null)
+                        c12.moveToFirst ();
+
+                    issue_json = c9.getString (c9.getColumnIndex ("str1")) + c10.getString (c10.getColumnIndex ("str2")) + c11.getString (c11.getColumnIndex ("str3")) + c12.getString (c12.getColumnIndex ("str4"));
+                    break;
+                case 4:
+                    String selectQuery13 = "SELECT substr (" + KEY_ISSUES_JSON + ", 1, 1000000) as str1 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery14 = "SELECT substr (" + KEY_ISSUES_JSON + ", 1000001, 1000000) as str2 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery15 = "SELECT substr (" + KEY_ISSUES_JSON + ", 2000001, 1000000) as str3 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery16 = "SELECT substr (" + KEY_ISSUES_JSON + ", 3000001, 1000000) as str4 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    String selectQuery17 = "SELECT substr (" + KEY_ISSUES_JSON + ", 4000001, 1000000) as str5 FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                    Cursor c13 = db.rawQuery (selectQuery13, null);
+                    Cursor c14 = db.rawQuery (selectQuery14, null);
+                    Cursor c15 = db.rawQuery (selectQuery15, null);
+                    Cursor c16 = db.rawQuery (selectQuery16, null);
+                    Cursor c17 = db.rawQuery (selectQuery17, null);
+                    if (c13 != null)
+                        c13.moveToFirst ();
+                    if (c14 != null)
+                        c14.moveToFirst ();
+                    if (c15 != null)
+                        c15.moveToFirst ();
+                    if (c16 != null)
+                        c16.moveToFirst ();
+                    if (c17 != null)
+                        c17.moveToFirst ();
+
+                    issue_json = c13.getString (c13.getColumnIndex ("str1")) + c14.getString (c14.getColumnIndex ("str2")) + c15.getString (c15.getColumnIndex ("str3")) + c16.getString (c16.getColumnIndex ("str4")) + c17.getString (c16.getColumnIndex ("str5"));
+                    break;
+            }
+
+
+            */
+
+
+        } else {
+            issue_json = c3.getString (c3.getColumnIndex (KEY_ISSUES_JSON));
+        }
+
+
+        Utils.showLog (Log.DEBUG, "DATABASE LOG", "length of blob" + c2.getInt (c2.getColumnIndex ("length")), true);
+
         Report report = new Report ();
-        report.setReport_id (c.getInt (c.getColumnIndex (KEY_ID)));
-        report.setAgency_id (c.getInt (c.getColumnIndex (KEY_AGENCY_ID)));
-        report.setAtm_id (c.getInt (c.getColumnIndex (KEY_ATM_ID)));
-        report.setAtm_unique_id (c.getString (c.getColumnIndex (KEY_ATM_UNIQUE_ID)));
-        report.setAuditor_id (c.getInt (c.getColumnIndex (KEY_AUDITOR_ID)));
-        report.setResponses_json_array (c.getString (c.getColumnIndex (KEY_ISSUES_JSON)));
-        report.setGeo_image_string (c.getString (c.getColumnIndex (KEY_GEO_IMAGE)));
-        report.setLatitude (c.getString (c.getColumnIndex (KEY_LATITUDE)));
-        report.setLongitude (c.getString (c.getColumnIndex (KEY_LONGITUDE)));
-        report.setSignature_image_string (c.getString (c.getColumnIndex (KEY_SIGN_IMAGE)));
+        try {
+            report.setReport_id (c.getInt (c.getColumnIndex (KEY_ID)));
+            report.setAgency_id (c.getInt (c.getColumnIndex (KEY_AGENCY_ID)));
+            report.setAtm_id (c.getInt (c.getColumnIndex (KEY_ATM_ID)));
+            report.setAtm_unique_id (c.getString (c.getColumnIndex (KEY_ATM_UNIQUE_ID)));
+            report.setAuditor_id (c.getInt (c.getColumnIndex (KEY_AUDITOR_ID)));
+//            report.setResponses_json_array (c3.getString (c3.getColumnIndex (KEY_ISSUES_JSON)));
+            report.setResponses_json_array (issue_json);
+            report.setGeo_image_string (c.getString (c.getColumnIndex (KEY_GEO_IMAGE)));
+            report.setLatitude (c.getString (c.getColumnIndex (KEY_LATITUDE)));
+            report.setLongitude (c.getString (c.getColumnIndex (KEY_LONGITUDE)));
+            report.setSignature_image_string (c.getString (c.getColumnIndex (KEY_SIGN_IMAGE)));
+        } catch (Exception e) {
+            e.printStackTrace ();
+            Utils.showLog (Log.DEBUG, "EXCEPTION", e.getMessage (), true);
+        }
         return report;
+
     }
 
     public List<Report> getAllReports () {
         List<Report> reports = new ArrayList<Report> ();
-        String selectQuery = "SELECT  * FROM " + TABLE_REPORT;
+        String selectQuery = "SELECT " + KEY_ID + " FROM " + TABLE_REPORT;
         Utils.showLog (Log.DEBUG, AppConfigTags.DATABASE_LOG, "Get all reports", false);
         SQLiteDatabase db = this.getReadableDatabase ();
         Cursor c = db.rawQuery (selectQuery, null);
         // looping through all rows and adding to list
         if (c.moveToFirst ()) {
             do {
-                Report report = new Report ();
-                report.setReport_id (c.getInt (c.getColumnIndex (KEY_ID)));
-                report.setAgency_id (c.getInt (c.getColumnIndex (KEY_AGENCY_ID)));
-                report.setAtm_id (c.getInt (c.getColumnIndex (KEY_ATM_ID)));
-                report.setAtm_unique_id (c.getString (c.getColumnIndex (KEY_ATM_UNIQUE_ID)));
-                report.setAuditor_id (c.getInt (c.getColumnIndex (KEY_AUDITOR_ID)));
-                report.setResponses_json_array (c.getString (c.getColumnIndex (KEY_ISSUES_JSON)));
-                report.setGeo_image_string (c.getString (c.getColumnIndex (KEY_GEO_IMAGE)));
-                report.setLatitude (c.getString (c.getColumnIndex (KEY_LATITUDE)));
-                report.setLongitude (c.getString (c.getColumnIndex (KEY_LONGITUDE)));
-                report.setSignature_image_string (c.getString (c.getColumnIndex (KEY_SIGN_IMAGE)));
-                reports.add (report);
+                try {
+                    Report report = new Report ();
+                    report = getReport (c.getInt (c.getColumnIndex (KEY_ID)));
+                    reports.add (report);
+                } catch (Exception e) {
+                    e.printStackTrace ();
+                    Utils.showLog (Log.DEBUG, "EXCEPTION", e.getMessage (), true);
+                    // this gets called even if there is an exception somewhere above
+//                    if (c2 != null)
+//                        c2.close ();
+                }
             } while (c.moveToNext ());
         }
         return reports;
@@ -391,6 +554,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase ();
         Utils.showLog (Log.DEBUG, AppConfigTags.DATABASE_LOG, "Delete all reports", false);
         db.execSQL ("delete from " + TABLE_REPORT);
+
     }
 
     // ------------------------ "auditor location" table methods ----------------//

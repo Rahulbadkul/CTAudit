@@ -107,7 +107,7 @@ public class AllAtmAdapter extends BaseAdapter {
 								if (Utils.isPackageExists (activity, "com.google.android.camera")) {
 									mIntent = new Intent ();
 									mIntent.setPackage ("com.google.android.camera");
-									mIntent.setAction (android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+									mIntent.setAction (MediaStore.ACTION_IMAGE_CAPTURE);
 								} else {
 									PackageManager packageManager = activity.getPackageManager ();
 									String defaultCameraPackage = null;
@@ -124,7 +124,7 @@ public class AllAtmAdapter extends BaseAdapter {
 									}
 									mIntent = new Intent ();
 									mIntent.setPackage (defaultCameraPackage);
-									mIntent.setAction (android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+									mIntent.setAction (MediaStore.ACTION_IMAGE_CAPTURE);
 									File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
 									mIntent.putExtra (MediaStore.EXTRA_OUTPUT, Uri.fromFile (f));
 								}
@@ -139,6 +139,68 @@ public class AllAtmAdapter extends BaseAdapter {
 						});
 				AlertDialog alert = builder.create ();
 				alert.show ();
+
+
+				/*
+
+
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+					if (activity.checkSelfPermission (Manifest.permission.CAMERA)
+                            != PackageManager.PERMISSION_GRANTED) {
+
+                        activity.requestPermissions (new String[] {Manifest.permission.CAMERA},
+		                        MainActivity.GEO_IMAGE_REQUEST_CODE_1);
+                    } else {
+					}
+				} else {
+					AlertDialog.Builder builder = new AlertDialog.Builder (activity);
+					builder.setMessage ("Please take an image of the ATM Machine\nNote : This image will be Geotagged")
+							.setCancelable (false)
+							.setPositiveButton ("OK", new DialogInterface.OnClickListener () {
+								public void onClick (DialogInterface dialog, int id) {
+									dialog.dismiss ();
+									Intent mIntent = null;
+									if (Utils.isPackageExists (activity, "com.google.android.camera")) {
+										mIntent = new Intent ();
+										mIntent.setPackage ("com.google.android.camera");
+										mIntent.setAction (MediaStore.ACTION_IMAGE_CAPTURE);
+									} else {
+										PackageManager packageManager = activity.getPackageManager ();
+										String defaultCameraPackage = null;
+										List<ApplicationInfo> list = packageManager.getInstalledApplications (PackageManager.GET_UNINSTALLED_PACKAGES);
+										for (int n = 0; n < list.size (); n++) {
+											if ((list.get (n).flags & ApplicationInfo.FLAG_SYSTEM) == 1) {
+												Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "Installed Applications  : " + list.get (n).loadLabel (packageManager).toString (), false);
+												Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "package name  : " + list.get (n).packageName, false);
+												if (list.get (n).loadLabel (packageManager).toString ().equalsIgnoreCase ("Camera")) {
+													defaultCameraPackage = list.get (n).packageName;
+													break;
+												}
+											}
+										}
+										mIntent = new Intent ();
+										mIntent.setPackage (defaultCameraPackage);
+										mIntent.setAction (MediaStore.ACTION_IMAGE_CAPTURE);
+										File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
+										mIntent.putExtra (MediaStore.EXTRA_OUTPUT, Uri.fromFile (f));
+									}
+									if (mIntent.resolveActivity (activity.getPackageManager ()) != null)
+										activity.startActivityForResult (mIntent, MainActivity.GEO_IMAGE_REQUEST_CODE);
+								}
+							})
+							.setNegativeButton ("CANCEL", new DialogInterface.OnClickListener () {
+								public void onClick (DialogInterface dialog, int id) {
+									dialog.dismiss ();
+								}
+							});
+					AlertDialog alert = builder.create ();
+					alert.show ();
+
+
+
+				}
+
+*/
 			}
 		});
 		return convertView;
@@ -152,4 +214,6 @@ public class AllAtmAdapter extends BaseAdapter {
 		TextView atm_city;
 		TextView atm_pincode;
 	}
+
+
 }

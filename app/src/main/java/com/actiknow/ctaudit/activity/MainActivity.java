@@ -1,6 +1,7 @@
 
 package com.actiknow.ctaudit.activity;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,9 +11,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -69,6 +72,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     public static int GEO_IMAGE_REQUEST_CODE = 1;
+    public static int PERMISSION_REQUEST_CODE = 11;
     TextView tvNoInternetConnection;
     ProgressBar progressBar;
     ListView listViewAllAtm;
@@ -98,6 +102,12 @@ public class MainActivity extends AppCompatActivity {
         setUpNavigationDrawer ();
 //        initLocationSettings ();
 
+
+        checkPermissions ();
+
+
+
+
         if (Constants.splash_screen_first_time == 0 && Constants.auditor_id_main != 0)
             showSplashScreen ();
 
@@ -107,8 +117,8 @@ public class MainActivity extends AppCompatActivity {
 //            getQuestionListFromServer ();
             if (db.getAuditorLocationCount () > 0)
                 uploadStoredAuditorLocationToServer ();
-//            if (db.getReportCount () > 0)
-//                uploadStoredReportsToServer ();
+            if (db.getReportCount () > 0)
+                uploadStoredReportsToServer ();
         }
         db.closeDB ();
     }
@@ -791,6 +801,8 @@ public class MainActivity extends AppCompatActivity {
                     String image = Utils.bitmapToBase64 (bp);
                     Constants.report.setGeo_image_string (image);
 
+                    Utils.showLog (Log.DEBUG, "GEO IMAGE", " " + image, true);
+
                     Intent intent = new Intent (MainActivity.this, ViewPagerActivity.class);
                     startActivity (intent);
                     overridePendingTransition (R.anim.slide_in_right, R.anim.slide_out_left);
@@ -803,7 +815,43 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    public void checkPermissions () {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission (Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission (Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission (Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission (Manifest.permission.RECEIVE_BOOT_COMPLETED) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission (Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+                requestPermissions (new String[] {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.INTERNET, Manifest.permission.RECEIVE_BOOT_COMPLETED, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MainActivity.PERMISSION_REQUEST_CODE);
+            }
+/*
+            if (checkSelfPermission (Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions (new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.PERMISSION_REQUEST_CODE);
+            }
+            if (checkSelfPermission (Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions (new String[] {Manifest.permission.INTERNET}, MainActivity.PERMISSION_REQUEST_CODE);
+            }
+            if (checkSelfPermission (Manifest.permission.RECEIVE_BOOT_COMPLETED) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions (new String[] {Manifest.permission.RECEIVE_BOOT_COMPLETED,}, MainActivity.PERMISSION_REQUEST_CODE);
+            }
+            if (checkSelfPermission (Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions (new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, MainActivity.PERMISSION_REQUEST_CODE);
+            }
+  */
+
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult (int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult (requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            }
+        }
+    }
 }
-
-
-

@@ -8,8 +8,8 @@ android {
         applicationId "com.actiknow.ctaudit"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 100
-        versionName "1.0.0"
+        versionCode 110
+        versionName "1.1.0"
         multiDexEnabled true
     }
     buildTypes {
@@ -50,6 +50,6 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.wang.avi:library:1.0.5'
     compile 'com.nineoldandroids:library:2.4.0'
-    compile 'com.android.support:multidex:1.0.0'
+    compile 'com.android.support:multidex:1.0.1'
     compile 'com.kyanogen.signatureview:signature-view:1.0'
 }

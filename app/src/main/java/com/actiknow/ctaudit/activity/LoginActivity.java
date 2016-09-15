@@ -35,7 +35,7 @@ import java.util.Map;
 
 
 public class LoginActivity extends AppCompatActivity {
-    TextView tvForgetPassword, tvForgetUsername;
+    TextView tvForgetPassword;
     EditText etUsername, etPassword;
     Button btLogin;
     ProgressDialog progressDialog;

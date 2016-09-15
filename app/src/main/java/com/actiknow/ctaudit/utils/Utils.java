@@ -214,11 +214,11 @@ public class Utils {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream ();
             if (NetworkConnection.isNetworkAvailable (activity)) {
-                bitmap.compress (Bitmap.CompressFormat.JPEG, 10, out);
+                bitmap.compress (Bitmap.CompressFormat.JPEG, Constants.image_quality, out);
             } else {
-                bitmap.compress (Bitmap.CompressFormat.JPEG, 10, out);
+                bitmap.compress (Bitmap.CompressFormat.JPEG, Constants.image_quality, out);
             }
-            decoded = Utils.scaleDown (BitmapFactory.decodeStream (new ByteArrayInputStream (out.toByteArray ())), 320, true);
+            decoded = Utils.scaleDown (BitmapFactory.decodeStream (new ByteArrayInputStream (out.toByteArray ())), Constants.max_image_size, true);
         } catch (Exception e) {
             e.printStackTrace ();
             Utils.showLog (Log.ERROR, "EXCEPTION", e.getMessage (), true);
@@ -270,5 +270,4 @@ public class Utils {
         AlertDialog alert = builder.create ();
         alert.show ();
     }
-
 }

@@ -5,7 +5,7 @@ import android.util.Log;
 import com.actiknow.ctaudit.utils.Utils;
 
 public class Report {
-    private int report_id, atm_id, auditor_id, agency_id, rating;
+    private int report_id, atm_id, auditor_id, agency_id;
     private String atm_unique_id, responses_json_array, geo_image_string, latitude, longitude, signature_image_string;
 
     public Report () {
@@ -15,9 +15,9 @@ public class Report {
                    String atm_unique_id, String responses_json_array, String geo_image_string,
                    String latitude, String longitude, String signature_image_string) {
         this.report_id = report_id;
+        this.atm_id = atm_id;
         this.auditor_id = auditor_id;
         this.agency_id = agency_id;
-        this.rating = rating;
         this.atm_unique_id = atm_unique_id;
         this.responses_json_array = responses_json_array;
         this.geo_image_string = geo_image_string;
