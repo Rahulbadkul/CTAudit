@@ -4,12 +4,17 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
 
+    lintOptions {
+        disable "ResourceType"
+    }
+
+
     defaultConfig {
         applicationId "com.actiknow.ctaudit"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 110
-        versionName "1.1.0"
+        versionCode 111
+        versionName "1.1.1"
         multiDexEnabled true
     }
     buildTypes {
@@ -21,7 +26,6 @@ android {
 
     dexOptions {
         preDexLibraries = false
-        incremental true
         javaMaxHeapSize "4g"
     }
 

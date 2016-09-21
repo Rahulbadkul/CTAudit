@@ -22,6 +22,8 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,8 +73,10 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+
     public static int GEO_IMAGE_REQUEST_CODE = 1;
     public static int PERMISSION_REQUEST_CODE = 11;
+    ArrayList<Atm> tempArrayList = new ArrayList<Atm> ();
     TextView tvNoInternetConnection;
     ProgressBar progressBar;
     ListView listViewAllAtm;
@@ -81,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     Dialog dialogSplash;
     Dialog dialogEnterManually;
     DatabaseHandler db;
+    EditText etSearch;
     // Action Bar components
     private List<Atm> atmList = new ArrayList<> ();
     private AllAtmAdapter adapter;
@@ -155,6 +160,36 @@ public class MainActivity extends AppCompatActivity {
                 showEnterManuallyDialog ();
             }
         });
+
+        etSearch.addTextChangedListener (new TextWatcher () {
+            @Override
+            public void onTextChanged (CharSequence cs, int arg1, int arg2, int arg3) {
+                int textlength = cs.length ();
+                tempArrayList.clear ();
+
+                for (Atm atm : atmList) {
+                    if (textlength <= String.valueOf (atm.getAtm_unique_id ()).length ()) {
+                        if (String.valueOf (atm.getAtm_unique_id ()).toLowerCase ().contains (cs.toString ().toLowerCase ())) {
+                            tempArrayList.add (atm);
+                        }
+                    }
+                }
+                adapter = new AllAtmAdapter (MainActivity.this, tempArrayList);
+                listViewAllAtm.setAdapter (adapter);
+            }
+
+            @Override
+            public void beforeTextChanged (CharSequence arg0, int arg1, int arg2, int arg3) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void afterTextChanged (Editable arg0) {
+                // TODO Auto-generated method stub
+            }
+        });
+
     }
 
     private void isLogin () {
@@ -186,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
         tvNoInternetConnection = (TextView) findViewById (R.id.tvNoIternetConnection);
         progressBar = (ProgressBar) findViewById (R.id.progressbar);
         btEnterManually = (Button) findViewById (R.id.btEnterManually);
+        etSearch = (EditText) findViewById (R.id.etAtmSearch);
     }
 
     private void getLatLong () {
@@ -261,6 +297,12 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_logout:
                 showLogOutDialog ();
                 return true;
+            case R.id.action_search:
+                if (etSearch.isShown ()) {
+                    etSearch.setVisibility (View.GONE);
+                } else {
+                    etSearch.setVisibility (View.VISIBLE);
+                }
         }
         Utils.hideSoftKeyboard (MainActivity.this);
 /**
@@ -481,6 +523,7 @@ public class MainActivity extends AppCompatActivity {
                     question.setComment_required (jsonObject.getBoolean ("comment_required"));
                     if (jsonObject.getBoolean ("comment_required")) {
                         question.setComment_required_for (jsonObject.getString ("comment_required_for"));
+                        question.setComment_hint (jsonObject.getString ("comment_hint"));
                     }
 
                     question.setCt_question (jsonObject.getBoolean ("ct_question"));
@@ -505,7 +548,6 @@ public class MainActivity extends AppCompatActivity {
             Utils.showLog (Log.WARN, AppConfigTags.SERVER_RESPONSE, AppConfigTags.DIDNT_RECEIVE_ANY_DATA_FROM_SERVER, true);
         }
     }
-
 
     private void getQuestionListFromServer () {
         if (NetworkConnection.isNetworkAvailable (this)) {
@@ -662,6 +704,38 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        // TODO Auto-generated method stub
+        super.onActivityResult (requestCode, resultCode, data);
+        if (requestCode == GEO_IMAGE_REQUEST_CODE) {
+            switch (resultCode) {
+                case RESULT_OK:
+                    File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
+
+                    Bitmap bp = null;
+                    if (f.exists ()) {
+                        bp = Utils.compressBitmap (BitmapFactory.decodeFile (f.getAbsolutePath ()), MainActivity.this);
+                    }
+
+//                    Bitmap bp = (Bitmap) data.getExtras ().get ("data");
+                    String image = Utils.bitmapToBase64 (bp);
+                    Constants.report.setGeo_image_string (image);
+
+                    Utils.showLog (Log.DEBUG, "GEO IMAGE", " " + image, true);
+
+                    Intent intent = new Intent (MainActivity.this, ViewPagerActivity.class);
+                    startActivity (intent);
+                    overridePendingTransition (R.anim.slide_in_right, R.anim.slide_out_left);
+                    break;
+                case RESULT_CANCELED:
+//                    Utils.showToast (MainActivity.this, "Please take an image");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     private void uploadStoredReportsToServer () {
         Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "Getting all the reports from local database", true);
         List<com.actiknow.ctaudit.model.Report> allReports = db.getAllReports ();
@@ -780,38 +854,6 @@ public class MainActivity extends AppCompatActivity {
                 Utils.sendRequest (strRequest1, 30);
             } else {
                 Utils.showLog (Log.WARN, AppConfigTags.TAG, "If no internet connection", true);
-            }
-        }
-    }
-
-    public void onActivityResult (int requestCode, int resultCode, Intent data) {
-        // TODO Auto-generated method stub
-        super.onActivityResult (requestCode, resultCode, data);
-        if (requestCode == GEO_IMAGE_REQUEST_CODE) {
-            switch (resultCode) {
-                case RESULT_OK:
-                    File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
-
-                    Bitmap bp = null;
-                    if (f.exists ()) {
-                        bp = Utils.compressBitmap (BitmapFactory.decodeFile (f.getAbsolutePath ()), MainActivity.this);
-                    }
-
-//                    Bitmap bp = (Bitmap) data.getExtras ().get ("data");
-                    String image = Utils.bitmapToBase64 (bp);
-                    Constants.report.setGeo_image_string (image);
-
-                    Utils.showLog (Log.DEBUG, "GEO IMAGE", " " + image, true);
-
-                    Intent intent = new Intent (MainActivity.this, ViewPagerActivity.class);
-                    startActivity (intent);
-                    overridePendingTransition (R.anim.slide_in_right, R.anim.slide_out_left);
-                    break;
-                case RESULT_CANCELED:
-//                    Utils.showToast (MainActivity.this, "Please take an image");
-                    break;
-                default:
-                    break;
             }
         }
     }

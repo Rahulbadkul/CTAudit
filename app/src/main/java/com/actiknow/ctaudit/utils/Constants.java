@@ -28,6 +28,6 @@ public class Constants {
     public static String location_tagging_start_time = "08:00";
     public static String location_tagging_end_time = "20:00";
 
-    public static int image_quality = 20;
-    public static int max_image_size = 1280;
+    public static int image_quality = 10;
+    public static int max_image_size = 320;
 }

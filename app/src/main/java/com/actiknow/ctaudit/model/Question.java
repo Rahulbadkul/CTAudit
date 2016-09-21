@@ -10,7 +10,7 @@ import java.util.List;
 public class Question {
     private boolean image_required, comment_required, ct_question, extra_options_present;
     private int question_id;
-    private String question, question_type, comment_required_for, extra_option_required_for;
+    private String question, question_type, comment_required_for, extra_option_required_for, comment_hint;
 
     private List<String> options = new ArrayList<> ();
     private List<String> extra_options = new ArrayList<> ();
@@ -19,13 +19,14 @@ public class Question {
     public Question () {
     }
 
-    public Question (int question_id, String question, String question_type, String comment_required_for, String extra_option_required_for,
+    public Question (int question_id, String question, String question_type, String comment_required_for, String extra_option_required_for, String comment_hint,
                      boolean image_required, boolean comment_required, boolean ct_question, boolean extra_options_present,
                      List<String> options, List<String> extra_options) {
         this.question_id = question_id;
         this.question = question;
         this.question_type = question_type;
         this.comment_required_for = comment_required_for;
+        this.comment_hint = comment_hint;
         this.extra_option_required_for = extra_option_required_for;
         this.image_required = image_required;
         this.comment_required = comment_required;
@@ -59,6 +60,14 @@ public class Question {
 
     public void setComment_required_for (String comment_required_for) {
         this.comment_required_for = comment_required_for;
+    }
+
+    public String getComment_hint () {
+        return comment_hint;
+    }
+
+    public void setComment_hint (String comment_hint) {
+        this.comment_hint = comment_hint;
     }
 
     public String getExtra_option_required_for () {

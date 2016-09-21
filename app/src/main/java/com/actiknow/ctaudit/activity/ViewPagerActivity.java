@@ -14,6 +14,7 @@ import com.actiknow.ctaudit.utils.CustomViewPager;
 
 
 public class ViewPagerActivity extends AppCompatActivity {
+    public static boolean ct_flag = false;
     public static boolean flag = false;
     static CustomViewPager vpPager;
     int count = 0;
@@ -21,6 +22,10 @@ public class ViewPagerActivity extends AppCompatActivity {
 
     public static void nextPage () {
         vpPager.setCurrentItem (vpPager.getCurrentItem () + 1);
+    }
+
+    public static void prevPage () {
+        vpPager.setCurrentItem (vpPager.getCurrentItem () - 1);
     }
 
     @Override

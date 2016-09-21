@@ -99,20 +99,6 @@ public class LoginActivity extends AppCompatActivity {
         if (NetworkConnection.isNetworkAvailable (LoginActivity.this)) {
             Utils.showLog (Log.INFO, AppConfigTags.URL, AppConfigURL.URL_LOGIN, true);
             Utils.showProgressDialog (progressDialog, null);
-
-
-            //         new Login (this).execute (etUsername.getText ().toString (), etPassword.getText ().toString ());
-
-
-
-
-
-
-
-
-
-
-
             StringRequest strRequest1 = new StringRequest (Request.Method.POST, AppConfigURL.URL_LOGIN,
                     new com.android.volley.Response.Listener<String> () {
                         @Override

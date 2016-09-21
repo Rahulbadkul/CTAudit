@@ -158,7 +158,7 @@
       ],
       "image_required": false,
       "comment_required": false,
-      "ct_question": true,
+      "ct_question": false,
       "extra_options_present": false
     },
     {
@@ -175,7 +175,7 @@
       ],
       "image_required": false,
       "comment_required": false,
-      "ct_question": true,
+      "ct_question": false,
       "extra_options_present": false
     },
     {
@@ -192,7 +192,7 @@
       ],
       "image_required": false,
       "comment_required": false,
-      "ct_question": true,
+      "ct_question": false,
       "extra_options_present": false
     },
     {
@@ -209,7 +209,7 @@
       ],
       "image_required": false,
       "comment_required": false,
-      "ct_question": true,
+      "ct_question": false,
       "extra_options_present": false
     },
     {
@@ -226,7 +226,7 @@
       ],
       "image_required": true,
       "comment_required": false,
-      "ct_question": true,
+      "ct_question": false,
       "extra_options_present": false
     },
     {
@@ -248,7 +248,7 @@
       "comment_required": true,
       "comment_required_for": "Others",
       "comment_hint": "Specify",
-      "ct_question": true,
+      "ct_question": false,
       "extra_options_present": false
     },
     {
@@ -266,31 +266,15 @@
       "image_required": false,
       "comment_required": true,
       "comment_required_for": "Yes",
-      "comment_hint": "Please Provide Number",
+      "comment_hint": "Provide Number",
       "ct_question": false,
       "extra_options_present": false
     },
     {
       "question_id": 15,
       "question": "Customer Lobby  Cleaned",
-      "question_type": "Radio",
-      "options": [
-        {
-          "option": "01 - Very Dirty"
-        },
-        {
-          "option": "02 - Dirty"
-        },
-        {
-          "option": "03 - Average"
-        },
-        {
-          "option": "04 - Clean"
-        },
-        {
-          "option": "05 - Very Clean"
-        }
-      ],
+      "question_type": "Rating",
+      "options": [],
       "image_required": true,
       "comment_required": false,
       "ct_question": false,
@@ -299,24 +283,8 @@
     {
       "question_id": 16,
       "question": "Back Room  Cleaned",
-      "question_type": "Radio",
-      "options": [
-        {
-          "option": "01 - Very Dirty"
-        },
-        {
-          "option": "02 - Dirty"
-        },
-        {
-          "option": "03 - Average"
-        },
-        {
-          "option": "04 - Clean"
-        },
-        {
-          "option": "05 - Very Clean"
-        }
-      ],
+      "question_type": "Rating",
+      "options": [],
       "image_required": true,
       "comment_required": false,
       "ct_question": false,
@@ -325,24 +293,8 @@
     {
       "question_id": 17,
       "question": "Glow Shine Board & Lolly Pop Clean",
-      "question_type": "Radio",
-      "options": [
-        {
-          "option": "01 - Very Dirty"
-        },
-        {
-          "option": "02 - Dirty"
-        },
-        {
-          "option": "03 - Average"
-        },
-        {
-          "option": "04 - Clean"
-        },
-        {
-          "option": "05 - Very Clean"
-        }
-      ],
+      "question_type": "Rating",
+      "options": [],
       "image_required": true,
       "comment_required": false,
       "ct_question": false,

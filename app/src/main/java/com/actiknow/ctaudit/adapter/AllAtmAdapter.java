@@ -2,15 +2,7 @@ package com.actiknow.ctaudit.adapter;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +10,11 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.actiknow.ctaudit.R;
-import com.actiknow.ctaudit.activity.MainActivity;
+import com.actiknow.ctaudit.activity.AtmDetailActivity;
 import com.actiknow.ctaudit.model.Atm;
-import com.actiknow.ctaudit.utils.AppConfigTags;
 import com.actiknow.ctaudit.utils.Constants;
 import com.actiknow.ctaudit.utils.Utils;
 
-import java.io.File;
 import java.util.List;
 
 public class AllAtmAdapter extends BaseAdapter {
@@ -96,7 +86,13 @@ public class AllAtmAdapter extends BaseAdapter {
 				Constants.report.setLatitude (String.valueOf (Constants.latitude));
 				Constants.report.setLongitude (String.valueOf (Constants.longitude));
 
+				Intent intent = new Intent (activity, AtmDetailActivity.class);
+				activity.startActivity (intent);
+				activity.overridePendingTransition (R.anim.slide_in_right, R.anim.slide_out_left);
 
+
+
+/*
 				AlertDialog.Builder builder = new AlertDialog.Builder (activity);
 				builder.setMessage ("Please take an image of the ATM Machine\nNote : This image will be Geotagged")
 						.setCancelable (false)
@@ -140,7 +136,7 @@ public class AllAtmAdapter extends BaseAdapter {
 				AlertDialog alert = builder.create ();
 				alert.show ();
 
-
+*/
 				/*
 
 
