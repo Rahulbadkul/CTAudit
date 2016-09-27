@@ -24,4 +24,5 @@ public class AppConfigURL {
     public static String URL_GETALLQUESTIONS = "http://hindustansupply.com/ct_audit_atms/index.php/auditor/getallquestions";
     public static String URL_SUBMITAUDITORLOCATION = "http://hindustansupply.com/ct_audit_atms/index.php/auditor/updateLocations";
     public static String URL_SUBMITREPORT = "http://hindustansupply.com/ct_audit_atms/index.php/auditor/createReports";
+//    public static String URL_SUBMITREPORT = "http://hindustansupply.com/ct_audit_atms/index.php/auditor/getList";
 }

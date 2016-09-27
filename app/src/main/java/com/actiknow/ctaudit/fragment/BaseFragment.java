@@ -192,7 +192,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             e.printStackTrace ();
         }
 
-
         if (page == 0) {
             LinearLayout.LayoutParams param = new LinearLayout.LayoutParams (
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -744,8 +743,8 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             @Override
             public void onClick (View v) {
                 dialogSign.dismiss ();
-                pDialog = new ProgressDialog (getActivity ());
-                Utils.showProgressDialog (pDialog, null);
+//                pDialog = new ProgressDialog (getActivity ());
+//                Utils.showProgressDialog (pDialog, null);
                 Bitmap bp = signatureView.getSignatureBitmap ();
                 Constants.report.setSignature_image_string (Utils.bitmapToBase64 (bp));
                 submitReportToServer (Constants.report);
@@ -762,18 +761,20 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                         public void onResponse (String response) {
                             Utils.showLog (Log.INFO, AppConfigTags.SERVER_RESPONSE, response, true);
                             if (response != null) {
-                                pDialog.dismiss ();
+//                                pDialog.dismiss ();
                                 try {
                                     JSONObject jsonObj = new JSONObject (response);
                                     switch (jsonObj.getInt (AppConfigTags.STATUS)) {
                                         case 0:
                                             db.createReport (report);
-                                            pDialog.dismiss ();
-                                            Utils.showOkDialog (getActivity (), "Some error occurred your responses have been saved offline and will be uploaded later", true);
+//                                            pDialog.dismiss ();
+//                                            Utils.showOkDialog (getActivity (), "Some error occurred your responses have been saved offline and will be uploaded later", false);
+                                            Utils.showLog (Log.INFO, "RESPONSE LOG", "Some error occurred your responses have been saved offline and will be uploaded later", true);
                                             break;
                                         case 1:
-                                            pDialog.dismiss ();
-                                            Utils.showOkDialog (getActivity (), "Your responses have been uploaded successfully to the server", true);
+//                                            pDialog.dismiss ();
+//                                            Utils.showOkDialog (getActivity (), "Your responses have been uploaded successfully to the server", false);
+                                            Utils.showLog (Log.INFO, "RESPONSE LOG", "Your responses have been uploaded successfully to the server", true);
                                             break;
                                     }
                                 } catch (JSONException e) {
@@ -789,9 +790,9 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                         @Override
                         public void onErrorResponse (VolleyError error) {
                             Utils.showLog (Log.ERROR, AppConfigTags.VOLLEY_ERROR, error.toString (), true);
-                            pDialog.dismiss ();
-                            Utils.showOkDialog (getActivity (), "Seems like there is an issue with the internet connection," +
-                                    " your responses have been saved and will be uploaded once you are online", true);
+//                            pDialog.dismiss ();
+//                            Utils.showOkDialog (getActivity (), "Seems like there is an issue with the internet connection," +
+//                                    " your responses have been saved and will be uploaded once you are online", false);
                             db.createReport (report);
                         }
                     }) {
@@ -824,8 +825,10 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                 }
             };
             Utils.sendRequest (strRequest1, 300);
+            Utils.showOkDialog (getActivity (), "Your responses have been saved" +
+                    " and will be uploaded in the background", true);
         } else {
-            pDialog.dismiss ();
+//            pDialog.dismiss ();
             Utils.showOkDialog (getActivity (), "Seems like there is no internet connection, your responses have been saved" +
                     " and will be uploaded once you are online", true);
             db.createReport (report);

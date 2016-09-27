@@ -1,8 +1,11 @@
 package com.actiknow.ctaudit.adapter;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +14,7 @@ import android.widget.TextView;
 
 import com.actiknow.ctaudit.R;
 import com.actiknow.ctaudit.activity.AtmDetailActivity;
+import com.actiknow.ctaudit.activity.MainActivity;
 import com.actiknow.ctaudit.model.Atm;
 import com.actiknow.ctaudit.utils.Constants;
 import com.actiknow.ctaudit.utils.Utils;
@@ -79,16 +83,22 @@ public class AllAtmAdapter extends BaseAdapter {
 //				Constants.atm_unique_id = atm.getAtm_unique_id ().toUpperCase ();
 //				Constants.atm_agency_id = atm.getAtm_agency_id ();
 
-				Constants.report.setAtm_id (atm.getAtm_id ());
-				Constants.report.setAuditor_id (Constants.auditor_id_main);
-				Constants.report.setAgency_id (atm.getAtm_agency_id ());
-				Constants.report.setAtm_unique_id (atm.getAtm_unique_id ().toUpperCase ());
-				Constants.report.setLatitude (String.valueOf (Constants.latitude));
-				Constants.report.setLongitude (String.valueOf (Constants.longitude));
 
-				Intent intent = new Intent (activity, AtmDetailActivity.class);
-				activity.startActivity (intent);
-				activity.overridePendingTransition (R.anim.slide_in_right, R.anim.slide_out_left);
+				if (checkPermissions ()) {
+					Constants.report.setAtm_id (atm.getAtm_id ());
+					Constants.report.setAuditor_id (Constants.auditor_id_main);
+					Constants.report.setAgency_id (atm.getAtm_agency_id ());
+					Constants.report.setAtm_unique_id (atm.getAtm_unique_id ().toUpperCase ());
+					Constants.report.setLatitude (String.valueOf (Constants.latitude));
+					Constants.report.setLongitude (String.valueOf (Constants.longitude));
+
+					Intent intent = new Intent (activity, AtmDetailActivity.class);
+					activity.startActivity (intent);
+					activity.overridePendingTransition (R.anim.slide_in_right, R.anim.slide_out_left);
+				} else {
+					Utils.showToast (activity, "Permissions are required for proceeding further");
+				}
+
 
 
 
@@ -191,15 +201,61 @@ public class AllAtmAdapter extends BaseAdapter {
 							});
 					AlertDialog alert = builder.create ();
 					alert.show ();
-
-
-
 				}
-
 */
+
+
 			}
 		});
 		return convertView;
+	}
+
+	public boolean checkPermissions () {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			if (activity.checkSelfPermission (Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+				activity.requestPermissions (new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.PERMISSION_REQUEST_CODE);
+				return false;
+			} else if (activity.checkSelfPermission (Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+				activity.requestPermissions (new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, MainActivity.PERMISSION_REQUEST_CODE);
+				return false;
+			} else if (activity.checkSelfPermission (Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+				activity.requestPermissions (new String[] {Manifest.permission.CAMERA}, MainActivity.PERMISSION_REQUEST_CODE);
+				return false;
+			}
+/*
+			if (activity.checkSelfPermission (Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+					activity.checkSelfPermission (Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+					activity.checkSelfPermission (Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
+					activity.checkSelfPermission (Manifest.permission.RECEIVE_BOOT_COMPLETED) != PackageManager.PERMISSION_GRANTED ||
+					activity.checkSelfPermission (Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+				activity.requestPermissions (new String[] {Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION,
+								Manifest.permission.INTERNET, Manifest.permission.RECEIVE_BOOT_COMPLETED, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+						PERMISSION_REQUEST_CODE);
+                return false;
+
+*/
+			else {
+				return true;
+			}
+/*
+            if (checkSelfPermission (Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions (new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.PERMISSION_REQUEST_CODE);
+            }
+            if (checkSelfPermission (Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions (new String[] {Manifest.permission.INTERNET}, MainActivity.PERMISSION_REQUEST_CODE);
+            }
+            if (checkSelfPermission (Manifest.permission.RECEIVE_BOOT_COMPLETED) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions (new String[] {Manifest.permission.RECEIVE_BOOT_COMPLETED,}, MainActivity.PERMISSION_REQUEST_CODE);
+            }
+            if (checkSelfPermission (Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions (new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, MainActivity.PERMISSION_REQUEST_CODE);
+            }
+  */
+
+		} else {
+			return true;
+		}
 	}
 
 	static class ViewHolder {
