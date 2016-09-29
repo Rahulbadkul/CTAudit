@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.actiknow.ctaudit.R;
 import com.actiknow.ctaudit.app.AppController;
+import com.actiknow.ctaudit.model.Response;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.toolbox.StringRequest;
 
@@ -269,5 +270,19 @@ public class Utils {
                 });
         AlertDialog alert = builder.create ();
         alert.show ();
+    }
+
+    public static boolean isCtNA () {
+        try {
+            Response response = Constants.responseList.get (1);
+            if (response.getResponse_text ().equalsIgnoreCase ("N/A"))
+                return true;
+            else
+                return false;
+        } catch (IndexOutOfBoundsException e) {
+            Utils.showLog (Log.ERROR, "EXCEPTION", e.getMessage (), true);
+            e.printStackTrace ();
+        }
+        return false;
     }
 }

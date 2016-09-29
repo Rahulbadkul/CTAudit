@@ -927,7 +927,7 @@ public class MainActivity extends AppCompatActivity {
                         // this is a good place to explain the user
                         // why you need the permission and ask if he want
                         // to accept it (the rationale)
-                    } else if (Manifest.permission.WRITE_EXTERNAL_STORAGE.equals (permission)) {
+                    } else if (WRITE_EXTERNAL_STORAGE.equals (permission)) {
 //                        Utils.showToast (this, "Write Permission is required");
 //                        showRationale (permission, R.string.permission_denied_contacts);
                         // user denied WITHOUT never ask again

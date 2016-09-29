@@ -14,7 +14,6 @@ import com.actiknow.ctaudit.utils.CustomViewPager;
 
 
 public class ViewPagerActivity extends AppCompatActivity {
-    public static boolean ct_flag = false;
     public static boolean flag = false;
     static CustomViewPager vpPager;
     int count = 0;

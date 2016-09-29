@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -127,6 +128,9 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         view = inflater.inflate (R.layout.fragment_first, container, false);
         initView (view);
         initListener ();
+        if (page == 13) {
+            etComments.setInputType (InputType.TYPE_CLASS_NUMBER);
+        }
         try {
             question = Constants.questionsList.get (page);
 
@@ -152,7 +156,16 @@ public class BaseFragment extends android.support.v4.app.Fragment {
 ///                    tvImageRequired.setVisibility (View.VISIBLE);
 ///                }
             } else {
-                rlImage.setVisibility (View.GONE);
+//                Utils.showLog (Log.DEBUG, "IS CT NA ", "" + Utils.isCtNA (), true);
+                if (Utils.isCtNA ()) {
+                    if (page == 11 || page == 1) {
+                        rlImage.setVisibility (View.VISIBLE);
+                    } else {
+                        rlImage.setVisibility (View.GONE);
+                    }
+                } else {
+                    rlImage.setVisibility (View.GONE);
+                }
             }
 
 
@@ -192,6 +205,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             e.printStackTrace ();
         }
 
+
         if (page == 0) {
             LinearLayout.LayoutParams param = new LinearLayout.LayoutParams (
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -220,8 +234,37 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             } else
                 ivImage1.setImageResource (R.drawable.image_placeholder);
         }
+
+
         db.closeDB ();
         return view;
+    }
+
+    public void setDefaultCheck (RadioGroup radioGroup) {
+        for (int j = 0; j < radioGroup.getChildCount (); j++) {
+            RadioButton radioButton = (RadioButton) radioGroup.getChildAt (j);
+            if (radioButton.getText ().toString ().equalsIgnoreCase ("No") || radioButton.getText ().toString ().equalsIgnoreCase ("N/A")) {
+                radioGroup.check (j + 1);
+            }
+        }
+    }
+
+    @Override
+    public void setMenuVisibility (final boolean visible) {
+        super.setMenuVisibility (visible);
+        Utils.showLog (Log.DEBUG, "page number karman : ", "" + page, true);
+        if (visible) {
+            if (page > 1) {
+                if (question.isCt_question () && Utils.isCtNA ()) {
+                    setDefaultCheck (rgOptions);
+                    if (page == 11) {
+                        question.setImage_required (false);
+                        tvImageRequired.setVisibility (View.GONE);
+                    }
+
+                }
+            }
+        }
     }
 
     public void addRadioButtons (RadioGroup radioGroup, List<String> Options) {
@@ -234,19 +277,22 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             radioGroup.addView (rdbtn);
         }
 
-        if (page == 0) {
-            final Calendar cld = Calendar.getInstance ();
-            int time = cld.get (Calendar.HOUR_OF_DAY);
-            Log.e ("time", String.valueOf (time));
-            if (time < 5) {
-                radioGroup.check (1);
-            } else if (time >= 5 && time < 19) {
-                radioGroup.check (2);
-            } else if (time >= 19 && time < 23) {
-                radioGroup.check (3);
-            } else if (time >= 23) {
-                radioGroup.check (1);
-            }
+
+        switch (page) {
+            case 0:
+                final Calendar cld = Calendar.getInstance ();
+                int time = cld.get (Calendar.HOUR_OF_DAY);
+                Log.e ("time", String.valueOf (time));
+                if (time < 5) {
+                    radioGroup.check (1);
+                } else if (time >= 5 && time < 19) {
+                    radioGroup.check (2);
+                } else if (time >= 19 && time < 23) {
+                    radioGroup.check (3);
+                } else if (time >= 23) {
+                    radioGroup.check (1);
+                }
+                break;
         }
     }
 
@@ -398,6 +444,15 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                             etComments.setError (null);
                         }
 
+                        if (page == 1) {
+                            if (optionSelected.equalsIgnoreCase ("N/A")) {
+                                question.setImage_required (false);
+                                tvImageRequired.setVisibility (View.GONE);
+                            } else {
+                                question.setImage_required (true);
+                                tvImageRequired.setVisibility (View.VISIBLE);
+                            }
+                        }
                         return;
                     }
                 }
@@ -631,7 +686,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
 //                    Utils.showToast (getActivity (), "Please select an option");
                     validate = false;
                 }
-                if (question.isImage_required () && Utils.bitmapToBase64 (bp1).length () == 0 && ! ViewPagerActivity.ct_flag) {
+                if (question.isImage_required () && Utils.bitmapToBase64 (bp1).length () == 0) {
                     error.add ("Select an image");
 //                    Utils.showToast (getActivity (), "Select an image");
                     validate = false;
@@ -644,6 +699,11 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                 if (question.isComment_required () && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () == 0) {
                     error.add ("Enter the value in comment");
 //                    Utils.showToast (getActivity (), "Enter the value in comment");
+                    validate = false;
+                }
+                if (page == 13 && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () < 6) {
+                    error.add ("Enter a valid number (Atleast 6 digit)");
+//                    Utils.showToast (getActivity (), "Select atleast one value");
                     validate = false;
                 }
                 if (error.size () > 0) {
