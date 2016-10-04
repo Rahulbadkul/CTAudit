@@ -128,9 +128,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         view = inflater.inflate (R.layout.fragment_first, container, false);
         initView (view);
         initListener ();
-        if (page == 13) {
-            etComments.setInputType (InputType.TYPE_CLASS_NUMBER);
-        }
         try {
             question = Constants.questionsList.get (page);
 
@@ -146,23 +143,28 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             Utils.showLog (Log.DEBUG, "QUESTION EXTRA OPTION PRESENT", " " + question.isExtra_options_present (), true);
             Utils.showLog (Log.DEBUG, "QUESTION EXTRA OPTION SIZE", " " + question.getExtra_options ().size (), true);
 
+            if (question.getQuestion_id () == 14 || question.getQuestion_id () == 22) {
+                etComments.setInputType (InputType.TYPE_CLASS_NUMBER);
+            }
 
             tvQuestion.setText (question.getQuestion ());
             if (question.isImage_required ()) {
                 rlImage.setVisibility (View.VISIBLE);
-///                if(ViewPagerActivity.ct_flag && question.isCt_question ()){
-///                    tvImageRequired.setVisibility (View.GONE);
-///                } else {
-///                    tvImageRequired.setVisibility (View.VISIBLE);
-///                }
             } else {
 //                Utils.showLog (Log.DEBUG, "IS CT NA ", "" + Utils.isCtNA (), true);
                 if (Utils.isCtNA ()) {
-                    if (page == 11 || page == 1) {
+                    if (question.getQuestion_id () == 13 || question.getQuestion_id () == 2) {
                         rlImage.setVisibility (View.VISIBLE);
                     } else {
                         rlImage.setVisibility (View.GONE);
                     }
+                } else if (Utils.isCtNo ()) {
+                    if (question.getQuestion_id () == 13) {
+                        rlImage.setVisibility (View.VISIBLE);
+                    } else {
+                        rlImage.setVisibility (View.GONE);
+                    }
+
                 } else {
                     rlImage.setVisibility (View.GONE);
                 }
@@ -240,11 +242,20 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         return view;
     }
 
-    public void setDefaultCheck (RadioGroup radioGroup) {
+    public void setDefaultCheck (RadioGroup radioGroup, int i) {
         for (int j = 0; j < radioGroup.getChildCount (); j++) {
             RadioButton radioButton = (RadioButton) radioGroup.getChildAt (j);
-            if (radioButton.getText ().toString ().equalsIgnoreCase ("No") || radioButton.getText ().toString ().equalsIgnoreCase ("N/A")) {
-                radioGroup.check (j + 1);
+            switch (i) {
+                case 2:
+                    if (radioButton.getText ().toString ().equalsIgnoreCase ("N/A")) {
+                        radioGroup.check (j + 1);
+                    }
+                    break;
+                case 1:
+                    if (radioButton.getText ().toString ().equalsIgnoreCase ("CT Not Available")) {
+                        radioGroup.check (j + 1);
+                    }
+                    break;
             }
         }
     }
@@ -253,15 +264,40 @@ public class BaseFragment extends android.support.v4.app.Fragment {
     public void setMenuVisibility (final boolean visible) {
         super.setMenuVisibility (visible);
         Utils.showLog (Log.DEBUG, "page number karman : ", "" + page, true);
+        try {
+            question = Constants.questionsList.get (page);
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace ();
+        }
+        Utils.showLog (Log.DEBUG, "question number karman : ", "" + question.getQuestion_id (), true);
         if (visible) {
-            if (page > 1) {
-                if (question.isCt_question () && Utils.isCtNA ()) {
-                    setDefaultCheck (rgOptions);
-                    if (page == 11) {
-                        question.setImage_required (false);
-                        tvImageRequired.setVisibility (View.GONE);
-                    }
+            if (question.getQuestion_id () == 20 && etComments.getText ().toString ().length () == 0) {
+                etComments.setHint ("Specify UPS Make and Sr Number");
+            }
+            if (question.getQuestion_id () == 19 && etComments.getText ().toString ().length () == 0) {
+                etComments.setHint ("Specify AC Make");
+            }
 
+            if (question.getQuestion_id () > 2) {
+                if (question.isCt_question ()) {
+                    if (Utils.isCtNA ()) {
+                        if (rgOptions.getCheckedRadioButtonId () == - 1) {
+                            setDefaultCheck (rgOptions, 2);
+                        }
+                        if (question.getQuestion_id () == 13) {
+                            question.setImage_required (false);
+                            tvImageRequired.setVisibility (View.GONE);
+                        }
+                    }
+                    if (Utils.isCtNo ()) {
+                        if (rgOptions.getCheckedRadioButtonId () == - 1) {
+                            setDefaultCheck (rgOptions, 1);
+                        }
+                        if (question.getQuestion_id () == 13) {
+                            question.setImage_required (false);
+                            tvImageRequired.setVisibility (View.GONE);
+                        }
+                    }
                 }
             }
         }
@@ -278,8 +314,8 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         }
 
 
-        switch (page) {
-            case 0:
+        switch (question.getQuestion_id ()) {
+            case 1:
                 final Calendar cld = Calendar.getInstance ();
                 int time = cld.get (Calendar.HOUR_OF_DAY);
                 Log.e ("time", String.valueOf (time));
@@ -363,6 +399,9 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         llChecks = (LinearLayout) view.findViewById (R.id.llChecks);
         rlImage = (RelativeLayout) view.findViewById (R.id.rlImage);
         tvImageRequired = (TextView) view.findViewById (R.id.tvImageRequired);
+        if (question.getQuestion_id () == 14 || question.getQuestion_id () == 22) {
+            etComments.setInputType (InputType.TYPE_CLASS_NUMBER);
+        }
     }
 
     private void initListener () {
@@ -444,13 +483,23 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                             etComments.setError (null);
                         }
 
-                        if (page == 1) {
+                        if (question.getQuestion_id () == 2) {
                             if (optionSelected.equalsIgnoreCase ("N/A")) {
                                 question.setImage_required (false);
                                 tvImageRequired.setVisibility (View.GONE);
                             } else {
                                 question.setImage_required (true);
                                 tvImageRequired.setVisibility (View.VISIBLE);
+                            }
+                        }
+
+                        if (question.getQuestion_id () == 13) {
+                            if (optionSelected.equalsIgnoreCase ("Yes")) {
+                                question.setImage_required (true);
+                                tvImageRequired.setVisibility (View.VISIBLE);
+                            } else {
+                                question.setImage_required (false);
+                                tvImageRequired.setVisibility (View.GONE);
                             }
                         }
                         return;
@@ -701,8 +750,18 @@ public class BaseFragment extends android.support.v4.app.Fragment {
 //                    Utils.showToast (getActivity (), "Enter the value in comment");
                     validate = false;
                 }
-                if (page == 13 && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () < 6) {
+                if (question.getQuestion_id () == 14 && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () < 6) {
                     error.add ("Enter a valid number (Atleast 6 digit)");
+//                    Utils.showToast (getActivity (), "Select atleast one value");
+                    validate = false;
+                }
+                if (question.getQuestion_id () == 19 && etComments.getText ().toString ().length () == 0) {
+                    error.add ("Enter AC Make in comments");
+//                    Utils.showToast (getActivity (), "Select atleast one value");
+                    validate = false;
+                }
+                if (question.getQuestion_id () == 20 && etComments.getText ().toString ().length () == 0) {
+                    error.add ("Enter UPS Make and Sr Number in comments");
 //                    Utils.showToast (getActivity (), "Select atleast one value");
                     validate = false;
                 }

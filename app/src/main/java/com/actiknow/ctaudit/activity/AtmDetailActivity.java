@@ -143,7 +143,7 @@ public class AtmDetailActivity extends AppCompatActivity {
 
     private void getAtmListFromServer () {
         if (NetworkConnection.isNetworkAvailable (this)) {
-            Utils.showProgressDialog (progressDialog, null);
+            Utils.showProgressDialog (progressDialog, null, true);
             Utils.showLog (Log.INFO, AppConfigTags.URL, AppConfigURL.URL_GETALLATMS, true);
             StringRequest strRequest = new StringRequest (Request.Method.POST, AppConfigURL.URL_GETALLATMS,
                     new Response.Listener<String> () {
@@ -248,6 +248,9 @@ public class AtmDetailActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed () {
+        if (progressDialog.isShowing ())
+            progressDialog.dismiss ();
+
         finish ();
         overridePendingTransition (R.anim.slide_in_left, R.anim.slide_out_right);
     }

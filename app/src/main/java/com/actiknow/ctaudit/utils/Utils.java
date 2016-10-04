@@ -134,7 +134,7 @@ public class Utils {
         SetTypeFace.applyTypeface (SetTypeFace.getParentView (view), tf);
     }
 
-    public static void showProgressDialog (ProgressDialog progressDialog, String message) {
+    public static void showProgressDialog (ProgressDialog progressDialog, String message, boolean cancelable) {
         // Initialize the progressDialog before calling this function
         TextView tvMessage;
         progressDialog.show ();
@@ -147,7 +147,7 @@ public class Utils {
         }
         else
             tvMessage.setVisibility (View.GONE);
-        progressDialog.setCancelable (false);
+        progressDialog.setCancelable (cancelable);
     }
 
     public static void showLog (int log_type, String tag, String message, boolean show_flag) {
@@ -276,6 +276,20 @@ public class Utils {
         try {
             Response response = Constants.responseList.get (1);
             if (response.getResponse_text ().equalsIgnoreCase ("N/A"))
+                return true;
+            else
+                return false;
+        } catch (IndexOutOfBoundsException e) {
+            Utils.showLog (Log.ERROR, "EXCEPTION", e.getMessage (), true);
+            e.printStackTrace ();
+        }
+        return false;
+    }
+
+    public static boolean isCtNo () {
+        try {
+            Response response = Constants.responseList.get (1);
+            if (response.getResponse_text ().equalsIgnoreCase ("No"))
                 return true;
             else
                 return false;

@@ -52,6 +52,9 @@
           "option": "No"
         },
         {
+          "option": "CT Not available"
+        },
+        {
           "option": "N/A"
         }
       ],
@@ -74,6 +77,9 @@
           "option": "No"
         },
         {
+          "option": "CT Not available"
+        },
+        {
           "option": "N/A"
         }
       ],
@@ -94,6 +100,9 @@
           "option": "No"
         },
         {
+          "option": "CT Not available"
+        },
+        {
           "option": "N/A"
         }
       ],
@@ -112,6 +121,9 @@
         },
         {
           "option": "No"
+        },
+        {
+          "option": "CT Not available"
         },
         {
           "option": "N/A"
@@ -135,6 +147,12 @@
         },
         {
           "option": "Other"
+        },
+        {
+          "option": "CT Not available"
+        },
+        {
+          "option": "N/A"
         }
       ],
       "image_required": false,
@@ -154,6 +172,12 @@
         },
         {
           "option": "No"
+        },
+        {
+          "option": "CT Not available"
+        },
+        {
+          "option": "N/A"
         }
       ],
       "image_required": false,
@@ -171,6 +195,12 @@
         },
         {
           "option": "No"
+        },
+        {
+          "option": "CT Not available"
+        },
+        {
+          "option": "N/A"
         }
       ],
       "image_required": false,
@@ -188,6 +218,12 @@
         },
         {
           "option": "No"
+        },
+        {
+          "option": "CT Not available"
+        },
+        {
+          "option": "N/A"
         }
       ],
       "image_required": false,
@@ -205,6 +241,12 @@
         },
         {
           "option": "No"
+        },
+        {
+          "option": "CT Not available"
+        },
+        {
+          "option": "N/A"
         }
       ],
       "image_required": false,
@@ -214,23 +256,6 @@
     },
     {
       "question_id": 12,
-      "question": " Register Maintained",
-      "question_type": "Radio",
-      "options": [
-        {
-          "option": "Yes"
-        },
-        {
-          "option": "No"
-        }
-      ],
-      "image_required": true,
-      "comment_required": false,
-      "ct_question": true,
-      "extra_options_present": false
-    },
-    {
-      "question_id": 13,
       "question": "Frequency of Supervisor Visits/Audits at site",
       "question_type": "Radio",
       "options": [
@@ -242,12 +267,41 @@
         },
         {
           "option": "Others"
+        },
+        {
+          "option": "CT Not available"
+        },
+        {
+          "option": "N/A"
         }
       ],
       "image_required": false,
       "comment_required": true,
       "comment_required_for": "Others",
       "comment_hint": "Specify",
+      "ct_question": true,
+      "extra_options_present": false
+    },
+    {
+      "question_id": 13,
+      "question": " Register Maintained",
+      "question_type": "Radio",
+      "options": [
+        {
+          "option": "Yes"
+        },
+        {
+          "option": "No"
+        },
+        {
+          "option": "CT Not available"
+        },
+        {
+          "option": "N/A"
+        }
+      ],
+      "image_required": true,
+      "comment_required": false,
       "ct_question": true,
       "extra_options_present": false
     },
@@ -424,7 +478,9 @@
         }
       ],
       "image_required": false,
-      "comment_required": false,
+      "comment_required": true,
+      "comment_required_for": "No",
+      "comment_hint": "Specify Reason",
       "ct_question": false,
       "extra_options_present": false
     },

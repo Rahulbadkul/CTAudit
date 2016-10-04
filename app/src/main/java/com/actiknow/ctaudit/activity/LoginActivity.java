@@ -98,7 +98,7 @@ public class LoginActivity extends AppCompatActivity {
     private void sendLoginDetailsToServer () {
         if (NetworkConnection.isNetworkAvailable (LoginActivity.this)) {
             Utils.showLog (Log.INFO, AppConfigTags.URL, AppConfigURL.URL_LOGIN, true);
-            Utils.showProgressDialog (progressDialog, null);
+            Utils.showProgressDialog (progressDialog, null, false);
             StringRequest strRequest1 = new StringRequest (Request.Method.POST, AppConfigURL.URL_LOGIN,
                     new com.android.volley.Response.Listener<String> () {
                         @Override
@@ -149,7 +149,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             };
 
-            Utils.sendRequest (strRequest1, 30);
+            Utils.sendRequest (strRequest1, 8);
 
 
         } else {
