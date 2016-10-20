@@ -15,6 +15,7 @@
           "option": "07 PM to 11 PM - Evening"
         }
       ],
+      "auto_time": true,
       "image_required": false,
       "comment_required": false,
       "ct_question": false,
@@ -35,6 +36,7 @@
           "option": "N/A"
         }
       ],
+      "first_ct_question": true,
       "image_required": true,
       "comment_required": false,
       "ct_question": true,
@@ -303,7 +305,8 @@
       "image_required": true,
       "comment_required": false,
       "ct_question": true,
-      "extra_options_present": false
+      "extra_options_present": false,
+      "image_required_for": "Yes"
     },
     {
       "question_id": 14,
@@ -322,11 +325,12 @@
       "comment_required_for": "Yes",
       "comment_hint": "Please Provide Number",
       "ct_question": false,
-      "extra_options_present": false
+      "extra_options_present": false,
+      "numeric_comment": true
     },
     {
       "question_id": 15,
-      "question": "Customer Lobby  Cleaned",
+      "question": "Customer Lobby Cleaned",
       "question_type": "Radio",
       "options": [
         {
@@ -352,7 +356,7 @@
     },
     {
       "question_id": 16,
-      "question": "Back Room  Cleaned",
+      "question": "Back Room Cleaned",
       "question_type": "Radio",
       "options": [
         {
@@ -460,8 +464,8 @@
       ],
       "image_required": false,
       "comment_required": false,
-      "comment_required_for": "",
-      "comment_hint": "Specify AC make",
+      "make_serial_type": true,
+      "mandatory_comment_not_for": "No AC on Site",
       "ct_question": false,
       "extra_options_present": false
     },
@@ -481,6 +485,8 @@
       "comment_required": true,
       "comment_required_for": "No",
       "comment_hint": "Specify Reason",
+      "make_serial_type": true,
+      "mandatory_comment_not_for": "No",
       "ct_question": false,
       "extra_options_present": false
     },
@@ -519,7 +525,8 @@
       "comment_required_for": "",
       "comment_hint": "Put comments",
       "ct_question": false,
-      "extra_options_present": false
+      "extra_options_present": false,
+      "numeric_comment": true
     },
     {
       "question_id": 23,
@@ -652,6 +659,9 @@
         },
         {
           "option": "Available - Expired by Date"
+        },
+        {
+          "option": "N/A"
         }
       ],
       "image_required": true,

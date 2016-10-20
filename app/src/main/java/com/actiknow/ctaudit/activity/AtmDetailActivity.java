@@ -1,7 +1,6 @@
 package com.actiknow.ctaudit.activity;
 
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -11,7 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v7.app.AlertDialog;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +26,8 @@ import com.actiknow.ctaudit.utils.AppConfigURL;
 import com.actiknow.ctaudit.utils.Constants;
 import com.actiknow.ctaudit.utils.NetworkConnection;
 import com.actiknow.ctaudit.utils.Utils;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -90,7 +91,53 @@ public class AtmDetailActivity extends AppCompatActivity {
         btContinue.setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick (View v) {
+                TextView tvMessage;
+                MaterialDialog dialog = new MaterialDialog.Builder (AtmDetailActivity.this)
+                        .customView (R.layout.dialog_basic, true)
+                        .positiveText (R.string.dialog_geoimage_positive)
+                        .negativeText (R.string.dialog_geoimage_negative)
+                        .onPositive (new MaterialDialog.SingleButtonCallback () {
+                            @Override
+                            public void onClick (@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss ();
+                                Intent mIntent = null;
+                                if (Utils.isPackageExists (AtmDetailActivity.this, "com.google.android.camera")) {
+                                    mIntent = new Intent ();
+                                    mIntent.setPackage ("com.google.android.camera");
+                                    mIntent.setAction (MediaStore.ACTION_IMAGE_CAPTURE);
+                                } else {
+                                    PackageManager packageManager = AtmDetailActivity.this.getPackageManager ();
+                                    String defaultCameraPackage = null;
+                                    List<ApplicationInfo> list = packageManager.getInstalledApplications (PackageManager.GET_UNINSTALLED_PACKAGES);
+                                    for (int n = 0; n < list.size (); n++) {
+                                        if ((list.get (n).flags & ApplicationInfo.FLAG_SYSTEM) == 1) {
+                                            Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "Installed Applications  : " + list.get (n).loadLabel (packageManager).toString (), false);
+                                            Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "package name  : " + list.get (n).packageName, false);
+                                            if (list.get (n).loadLabel (packageManager).toString ().equalsIgnoreCase ("Camera")) {
+                                                defaultCameraPackage = list.get (n).packageName;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    mIntent = new Intent ();
+                                    mIntent.setPackage (defaultCameraPackage);
+                                    mIntent.setAction (MediaStore.ACTION_IMAGE_CAPTURE);
+                                    File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
+                                    mIntent.putExtra (MediaStore.EXTRA_OUTPUT, Uri.fromFile (f));
+                                }
+                                if (mIntent.resolveActivity (getPackageManager ()) != null)
+                                    startActivityForResult (mIntent, GEO_IMAGE_REQUEST_CODE);
+                            }
+                        }).build ();
 
+                tvMessage = (TextView) dialog.getCustomView ().findViewById (R.id.tvMessage);
+                tvMessage.setText (R.string.dialog_geoimage_content);
+                Utils.setTypefaceToAllViews (AtmDetailActivity.this, tvMessage);
+                dialog.show ();
+
+
+
+/*
                 AlertDialog.Builder builder = new AlertDialog.Builder (AtmDetailActivity.this);
                 builder.setMessage ("Please take an image of the ATM Machine\nNote : This image will be Geotagged")
                         .setCancelable (false)
@@ -133,7 +180,7 @@ public class AtmDetailActivity extends AppCompatActivity {
                         });
                 AlertDialog alert = builder.create ();
                 alert.show ();
-
+*/
 
             }
         });

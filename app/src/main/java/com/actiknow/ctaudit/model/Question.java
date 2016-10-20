@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Question {
-    private boolean image_required, comment_required, ct_question, extra_options_present;
+    private boolean image_required, comment_required, ct_question, extra_options_present, numeric_comment, auto_time, first_ct_question, make_serial_type;
     private int question_id;
-    private String question, question_type, comment_required_for, extra_option_required_for, comment_hint;
+    private String question, question_type, comment_required_for, extra_option_required_for, comment_hint, image_required_for, mandatory_comment_not_for;
 
     private List<String> options = new ArrayList<> ();
     private List<String> extra_options = new ArrayList<> ();
@@ -19,8 +19,8 @@ public class Question {
     public Question () {
     }
 
-    public Question (int question_id, String question, String question_type, String comment_required_for, String extra_option_required_for, String comment_hint,
-                     boolean image_required, boolean comment_required, boolean ct_question, boolean extra_options_present,
+    public Question (int question_id, String question, String question_type, String comment_required_for, String extra_option_required_for, String comment_hint, String image_required_for, String mandatory_comment_not_for,
+                     boolean image_required, boolean comment_required, boolean ct_question, boolean extra_options_present, boolean numeric_comment, boolean auto_time, boolean first_ct_question, boolean make_serial_type,
                      List<String> options, List<String> extra_options) {
         this.question_id = question_id;
         this.question = question;
@@ -28,10 +28,16 @@ public class Question {
         this.comment_required_for = comment_required_for;
         this.comment_hint = comment_hint;
         this.extra_option_required_for = extra_option_required_for;
+        this.mandatory_comment_not_for = mandatory_comment_not_for;
+        this.image_required_for = image_required_for;
         this.image_required = image_required;
         this.comment_required = comment_required;
         this.ct_question = ct_question;
         this.extra_options_present = extra_options_present;
+        this.numeric_comment = numeric_comment;
+        this.auto_time = auto_time;
+        this.first_ct_question = first_ct_question;
+        this.make_serial_type = make_serial_type;
         this.options = options;
         this.extra_options = extra_options;
     }
@@ -62,6 +68,14 @@ public class Question {
         this.comment_required_for = comment_required_for;
     }
 
+    public boolean isNumeric_comment () {
+        return numeric_comment;
+    }
+
+    public void setNumeric_comment (boolean numeric_comment) {
+        this.numeric_comment = numeric_comment;
+    }
+
     public String getComment_hint () {
         return comment_hint;
     }
@@ -70,12 +84,28 @@ public class Question {
         this.comment_hint = comment_hint;
     }
 
+    public String getImage_required_for () {
+        return image_required_for;
+    }
+
+    public void setImage_required_for (String image_required_for) {
+        this.image_required_for = image_required_for;
+    }
+
     public String getExtra_option_required_for () {
         return extra_option_required_for;
     }
 
     public void setExtra_option_required_for (String extra_option_required_for) {
         this.extra_option_required_for = extra_option_required_for;
+    }
+
+    public String getMandatory_comment_not_for () {
+        return mandatory_comment_not_for;
+    }
+
+    public void setMandatory_comment_not_for (String mandatory_comment_not_for) {
+        this.mandatory_comment_not_for = mandatory_comment_not_for;
     }
 
     public boolean isImage_required () {
@@ -118,6 +148,29 @@ public class Question {
         this.question_type = question_type;
     }
 
+    public boolean isAuto_time () {
+        return auto_time;
+    }
+
+    public void setAuto_time (boolean auto_time) {
+        this.auto_time = auto_time;
+    }
+
+    public boolean isFirst_ct_question () {
+        return first_ct_question;
+    }
+
+    public void setFirst_ct_question (boolean first_ct_question) {
+        this.first_ct_question = first_ct_question;
+    }
+
+    public boolean isMake_serial_type () {
+        return make_serial_type;
+    }
+
+    public void setMake_serial_type (boolean make_serial_type) {
+        this.make_serial_type = make_serial_type;
+    }
 
     public List<String> getOptions () {
         return options;
@@ -130,7 +183,6 @@ public class Question {
     public void setOptionInList (String option) {
         this.options.add (option);
     }
-
 
     public List<String> getExtra_options () {
         return extra_options;

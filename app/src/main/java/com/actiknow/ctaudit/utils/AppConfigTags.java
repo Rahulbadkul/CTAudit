@@ -38,6 +38,8 @@ public class AppConfigTags {
 
     public static final String SIGN_IMAGE = "sign_image";
 
+    public static final String OTHER_IMAGES = "other_images";
+
     public static final String LOGIN = "login";
     public static final String EMAIL = "email";
     public static final String PASSWORD = "password";

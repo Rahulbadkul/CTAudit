@@ -6,14 +6,14 @@ import com.actiknow.ctaudit.utils.Utils;
 
 public class Report {
     private int report_id, atm_id, auditor_id, agency_id;
-    private String atm_unique_id, responses_json_array, geo_image_string, latitude, longitude, signature_image_string;
+    private String atm_unique_id, responses_json_array, geo_image_string, latitude, longitude, signature_image_string, other_images_json;
 
     public Report () {
     }
 
     public Report (int report_id, int atm_id, int auditor_id, int agency_id,
                    String atm_unique_id, String responses_json_array, String geo_image_string,
-                   String latitude, String longitude, String signature_image_string) {
+                   String latitude, String longitude, String signature_image_string, String other_images_json) {
         this.report_id = report_id;
         this.atm_id = atm_id;
         this.auditor_id = auditor_id;
@@ -24,6 +24,7 @@ public class Report {
         this.latitude = latitude;
         this.longitude = longitude;
         this.signature_image_string = signature_image_string;
+        this.other_images_json = other_images_json;
     }
 
     public int getReport_id () {
@@ -114,5 +115,13 @@ public class Report {
     public void setSignature_image_string (String signature_image_string) {
         this.signature_image_string = signature_image_string;
         Utils.showLog (Log.DEBUG, "signature_image_string", signature_image_string, false);
+    }
+
+    public String getOther_images_json () {
+        return other_images_json;
+    }
+
+    public void setOther_images_json (String other_images_json) {
+        this.other_images_json = other_images_json;
     }
 }

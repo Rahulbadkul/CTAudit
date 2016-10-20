@@ -2,15 +2,18 @@
 package com.actiknow.ctaudit.activity;
 
 import android.Manifest;
+import android.animation.LayoutTransition;
 import android.annotation.TargetApi;
 import android.app.Dialog;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,11 +21,16 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.v4.widget.DrawerLayout;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -30,18 +38,16 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.view.animation.OvershootInterpolator;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.actiknow.ctaudit.R;
 import com.actiknow.ctaudit.adapter.AllAtmAdapter;
-import com.actiknow.ctaudit.adapter.NavDrawerAdapter;
 import com.actiknow.ctaudit.helper.DatabaseHandler;
 import com.actiknow.ctaudit.model.Atm;
 import com.actiknow.ctaudit.model.Question;
@@ -53,57 +59,95 @@ import com.actiknow.ctaudit.utils.GPSTracker;
 import com.actiknow.ctaudit.utils.LoginDetailsPref;
 import com.actiknow.ctaudit.utils.NetworkConnection;
 import com.actiknow.ctaudit.utils.Utils;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.internal.MDTintHelper;
+import com.afollestad.materialdialogs.internal.ThemeSingleton;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.bumptech.glide.Glide;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.mikepenz.fontawesome_typeface_library.FontAwesome;
+import com.mikepenz.iconics.IconicsDrawable;
+import com.mikepenz.materialdrawer.AccountHeader;
+import com.mikepenz.materialdrawer.AccountHeaderBuilder;
+import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.model.DividerDrawerItem;
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
+import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
+import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader;
+import com.mikepenz.materialdrawer.util.DrawerImageLoader;
+import com.mikepenz.materialdrawer.util.DrawerUIUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
+
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     public static int GEO_IMAGE_REQUEST_CODE = 1;
     public static int PERMISSION_REQUEST_CODE = 11;
     ArrayList<Atm> tempArrayList = new ArrayList<Atm> ();
     TextView tvNoInternetConnection;
     ProgressBar progressBar;
-    ListView listViewAllAtm;
-    Button btEnterManually;
     GoogleApiClient client;
     Dialog dialogSplash;
     Dialog dialogEnterManually;
     DatabaseHandler db;
     EditText etSearch;
+    SwipeRefreshLayout swipeRefreshLayout;
+    RecyclerView recyclerViewAllAtm;
+    //    private ActionBarDrawerToggle mDrawerToggle;
+//    private DrawerLayout mDrawerLayout;
+//    private RelativeLayout mDrawerPanel;
+    SimpleDateFormat sdf;
+    RelativeLayout rlToolbarLogo;
+    Bundle savedInstanceState;
+    Toolbar toolbar;
+    CoordinatorLayout clMain;
+    EditText etEnterManuallyAtmId;
+    EditText etEnterManuallyAtmLocation;
     // Action Bar components
     private List<Atm> atmList = new ArrayList<> ();
     private AllAtmAdapter adapter;
-    private ActionBarDrawerToggle mDrawerToggle;
-    private DrawerLayout mDrawerLayout;
-    private RelativeLayout mDrawerPanel;
+    private FloatingActionButton fabEnterManually;
+    private FloatingActionMenu fabMenu;
+    private AccountHeader headerResult;
+    private Drawer result;
 
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate (savedInstanceState);
         setContentView (R.layout.activity_main);
+        this.savedInstanceState = savedInstanceState;
         initView ();
         initPref ();
         isLogin ();
         initListener ();
         initData ();
+        initDrawer ();
         getLatLong ();
         initService ();
         setUpNavigationDrawer ();
@@ -121,17 +165,31 @@ public class MainActivity extends AppCompatActivity {
             if (db.getReportCount () > 0)
                 uploadStoredReportsToServer ();
         }
+        getTimeFromServer ();
         db.closeDB ();
     }
 
     private void initData () {
         db = new DatabaseHandler (getApplicationContext ());
+        new DrawerBuilder ().withActivity (this).build ();
+
         Utils.setTypefaceToAllViews (this, tvNoInternetConnection);
         adapter = new AllAtmAdapter (this, atmList);
         //    Constants.questionsList.clear ();
-        listViewAllAtm.setAdapter (adapter);
+
+        AlphaInAnimationAdapter alphaAdapter = new AlphaInAnimationAdapter (adapter);
+        alphaAdapter.setDuration (700);
+        recyclerViewAllAtm.setAdapter (alphaAdapter);
+        recyclerViewAllAtm.setHasFixedSize (true);
+        recyclerViewAllAtm.setLayoutManager (new LinearLayoutManager (this));
+        recyclerViewAllAtm.setItemAnimator (new DefaultItemAnimator ());
+
         client = new GoogleApiClient.Builder (this).addApi (AppIndex.API).build ();
         dialogSplash = new Dialog (this, R.style.full_screen);
+        sdf = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+        Constants.server_time = sdf.format (new Date ());
+        swipeRefreshLayout.setRefreshing (false);
+        fabMenu.setClosedOnTouchOutside (true);
     }
 
     @Override
@@ -150,10 +208,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initListener () {
-        btEnterManually.setOnClickListener (new View.OnClickListener () {
+
+        fabEnterManually.setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick (View v) {
+                fabMenu.close (true);
                 showEnterManuallyDialog ();
+
             }
         });
 
@@ -170,8 +231,17 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
+
                 adapter = new AllAtmAdapter (MainActivity.this, tempArrayList);
-                listViewAllAtm.setAdapter (adapter);
+                AlphaInAnimationAdapter alphaAdapter = new AlphaInAnimationAdapter (adapter);
+                alphaAdapter.setDuration (700);
+                alphaAdapter.setFirstOnly (true);
+                alphaAdapter.setInterpolator (new OvershootInterpolator ());
+
+//                SlideInLeftAnimationAdapter slideAdapter = new SlideInLeftAnimationAdapter (alphaAdapter);
+//                slideAdapter.setDuration (500);
+//                slideAdapter.setFirstOnly (true);
+                recyclerViewAllAtm.setAdapter (alphaAdapter);
             }
 
             @Override
@@ -186,7 +256,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        rlToolbarLogo.setOnClickListener (new View.OnClickListener () {
+            @Override
+            public void onClick (View v) {
+                if (result != null && ! result.isDrawerOpen ()) {
+                    result.openDrawer ();
+                }
+            }
+        });
+
+
+        swipeRefreshLayout.setOnRefreshListener (new SwipeRefreshLayout.OnRefreshListener () {
+            @Override
+            public void onRefresh () {
+                swipeRefreshLayout.setRefreshing (false);
+                recyclerViewAllAtm.setVisibility (View.GONE);
+                progressBar.setVisibility (View.VISIBLE);
+                getAtmListFromServer ();
+                etSearch.setText ("");
+                etSearch.setError (null);
+            }
+        });
+
     }
+
 
     private void isLogin () {
         if (Constants.username == "" || Constants.auditor_id_main == 0 || Constants.auditor_name == "") {
@@ -213,11 +306,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView () {
-        listViewAllAtm = (ListView) findViewById (R.id.lvAtmList);
+        recyclerViewAllAtm = (RecyclerView) findViewById (R.id.rvAtmList);
         tvNoInternetConnection = (TextView) findViewById (R.id.tvNoIternetConnection);
         progressBar = (ProgressBar) findViewById (R.id.progressbar);
-        btEnterManually = (Button) findViewById (R.id.btEnterManually);
         etSearch = (EditText) findViewById (R.id.etAtmSearch);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById (R.id.swipe_refresh_layout);
+        fabEnterManually = (FloatingActionButton) findViewById (R.id.fabEnterManually);
+        fabMenu = (FloatingActionMenu) findViewById (R.id.fabMenu);
+        rlToolbarLogo = (RelativeLayout) findViewById (R.id.toolbar_logo);
+        clMain = (CoordinatorLayout) findViewById (R.id.clMain);
     }
 
     private void getLatLong () {
@@ -229,6 +326,95 @@ public class MainActivity extends AppCompatActivity {
         } else {
             gps.showSettingsAlert ();
         }
+    }
+
+
+    private void initDrawer () {
+        DrawerImageLoader.init (new AbstractDrawerImageLoader () {
+            @Override
+            public void set (ImageView imageView, Uri uri, Drawable placeholder) {
+                Glide.with (imageView.getContext ()).load (uri).placeholder (placeholder).into (imageView);
+            }
+
+            @Override
+            public void cancel (ImageView imageView) {
+                Glide.clear (imageView);
+            }
+
+            @Override
+            public Drawable placeholder (Context ctx, String tag) {
+                //define different placeholders for different imageView targets
+                //default tags are accessible via the DrawerImageLoader.Tags
+                //custom ones can be checked via string. see the CustomUrlBasePrimaryDrawerItem LINE 111
+                if (DrawerImageLoader.Tags.PROFILE.name ().equals (tag)) {
+                    return DrawerUIUtils.getPlaceHolder (ctx);
+                } else if (DrawerImageLoader.Tags.ACCOUNT_HEADER.name ().equals (tag)) {
+                    return new IconicsDrawable (ctx).iconText (" ").backgroundColorRes (com.mikepenz.materialdrawer.R.color.primary).sizeDp (56);
+                } else if ("customUrlItem".equals (tag)) {
+                    return new IconicsDrawable (ctx).iconText (" ").backgroundColorRes (R.color.md_white_1000).sizeDp (56);
+                }
+
+                //we use the default one for
+                //DrawerImageLoader.Tags.PROFILE_DRAWER_ITEM.name()
+
+                return super.placeholder (ctx, tag);
+            }
+        });
+        headerResult = new AccountHeaderBuilder ()
+                .withActivity (this)
+                .withCompactStyle (true)
+                .addProfiles (new ProfileDrawerItem ()
+                        .withName (Constants.auditor_name)
+                        .withEmail (Constants.username)
+//                        .withIcon ("http://i.istockimg.com/file_thumbview_approve/64330137/3/stock-photo-64330137-a-icon-of-a-businessman-avatar-or-profile-pic.jpg"))
+                        .withIcon (R.drawable.ic_profile_default))
+                .withProfileImagesClickable (false)
+                .withPaddingBelowHeader (false)
+                .withSelectionListEnabledForSingleProfile (false)
+                .withHeaderBackground (R.drawable.header)
+                .withSavedInstance (savedInstanceState)
+                .build ();
+
+        result = new DrawerBuilder ()
+                .withActivity (this)
+                .withAccountHeader (headerResult)
+//                .withToolbar (toolbar)
+//                .withItemAnimator (new AlphaCrossFadeAnimator ())
+                .addDrawerItems (
+                        new PrimaryDrawerItem ().withName (R.string.drawer_item_home).withIcon (FontAwesome.Icon.faw_home).withIdentifier (1),
+                        new DividerDrawerItem (),
+                        new SecondaryDrawerItem ().withName (R.string.drawer_item_settings).withEnabled (false).withSelectable (false).withIdentifier (2),
+                        new SecondaryDrawerItem ().withName (R.string.drawer_item_help_and_feedback).withEnabled (false).withSelectable (false).withIdentifier (3),
+                        new SecondaryDrawerItem ().withName (R.string.drawer_item_about_ctaudit).withEnabled (false).withSelectable (false).withIdentifier (4),
+                        new SecondaryDrawerItem ().withName (R.string.drawer_item_logout).withSelectable (false).withIdentifier (5)
+                )
+                .withSavedInstance (savedInstanceState)
+                .withOnDrawerItemClickListener (new Drawer.OnDrawerItemClickListener () {
+                    @Override
+                    public boolean onItemClick (View view, int position, IDrawerItem drawerItem) {
+                        // do something with the clicked item :D
+                        switch ((int) drawerItem.getIdentifier ()) {
+                            case 5:
+                                showLogOutDialog ();
+                                Utils.showLog (Log.ERROR, "position ", "" + position, true);
+                                break;
+                        }
+                        return false;
+                    }
+                })
+                .build ();
+//        result.getActionBarDrawerToggle ().setDrawerIndicatorEnabled (false);
+
+
+    }
+
+    @Override
+    protected void onSaveInstanceState (Bundle outState) {
+        //add the values which need to be saved from the drawer to the bundle
+        outState = result.saveInstanceState (outState);
+        //add the values which need to be saved from the accountHeader to the bundle
+        outState = headerResult.saveInstanceState (outState);
+        super.onSaveInstanceState (outState);
     }
 
     @Override
@@ -273,8 +459,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed () {
-        if (mDrawerLayout.isDrawerOpen (mDrawerPanel)) {
-            mDrawerLayout.closeDrawer (mDrawerPanel);
+        if (result != null && result.isDrawerOpen ()) {
+            result.closeDrawer ();
         } else {
             finish ();
             overridePendingTransition (R.anim.slide_in_left, R.anim.slide_out_right);
@@ -284,21 +470,59 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu (Menu menu) {
         getMenuInflater ().inflate (R.menu.menu_main, menu);
-        return true;
+
+        SearchManager searchManager = (SearchManager) getSystemService (Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem (R.id.action_search).getActionView ();
+        if (null != searchView) {
+            searchView.setSearchableInfo (searchManager.getSearchableInfo (getComponentName ()));
+//            searchView.setIconifiedByDefault (false);
+        }
+
+//        final int searchBarId = searchView.getContext ().getResources ().getIdentifier ("android:id/search_bar", null, null);
+//        LinearLayout searchBar = (LinearLayout) searchView.findViewById (searchBarId);
+
+        EditText et = (EditText) searchView.findViewById (R.id.search_src_text);
+//        et.getBackground ().setColorFilter (R.color.text_color_grey_dark,null);
+//        et.setBackgroundColor (getResources ().getColor (R.color.text_color_grey_light)); // ← If you just want a color
+//        et.setBackground (getResources ().getDrawable (R.drawable.layout_search_edittext));
+
+        LinearLayout searchBar = (LinearLayout) searchView.findViewById (R.id.search_bar);
+        searchBar.setLayoutTransition (new LayoutTransition ());
+
+        searchView.setQueryHint ("Search ATM ID");
+        SearchView.OnQueryTextListener queryTextListener = new SearchView.OnQueryTextListener () {
+            public boolean onQueryTextChange (String newText) {
+                etSearch.setText (newText);
+                return true;
+            }
+
+            public boolean onQueryTextSubmit (String query) {
+                //Here u can get the value "query" which is entered in the search box.
+                return true;
+            }
+        };
+        searchView.setOnQueryTextListener (queryTextListener);
+
+        return super.onCreateOptionsMenu (menu);
     }
 
     @Override
     public boolean onOptionsItemSelected (MenuItem item) {
         switch (item.getItemId ()) {
-            case R.id.action_logout:
-                showLogOutDialog ();
-                return true;
             case R.id.action_search:
-                if (etSearch.isShown ()) {
-                    etSearch.setVisibility (View.GONE);
-                } else {
-                    etSearch.setVisibility (View.VISIBLE);
-                }
+//                if (etSearch.isShown ()) {
+//                    etSearch.setVisibility (View.GONE);
+//                    final Handler handler = new Handler ();
+//                    handler.postDelayed (new Runnable () {
+//                        @Override
+//                        public void run () {
+//                            etSearch.setText ("");
+//                        }
+//                    }, 1000);
+//                } else {
+//                    etSearch.setVisibility (View.VISIBLE);
+//                }
+                break;
         }
         Utils.hideSoftKeyboard (MainActivity.this);
 /**
@@ -314,11 +538,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLogOutDialog () {
+        TextView tvMessage;
+        MaterialDialog dialog = new MaterialDialog.Builder (this)
+                .customView (R.layout.dialog_basic, true)
+                .positiveText (R.string.dialog_logout_positive)
+                .negativeText (R.string.dialog_logout_negative)
+                .onPositive (new MaterialDialog.SingleButtonCallback () {
+                    @Override
+                    public void onClick (@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss ();
+                        LoginDetailsPref loginDetailsPref = LoginDetailsPref.getInstance ();
+                        loginDetailsPref.putIntPref (MainActivity.this, LoginDetailsPref.AUDITOR_ID, 0);
+                        loginDetailsPref.putStringPref (MainActivity.this, LoginDetailsPref.AUDITOR_NAME, "");
+                        loginDetailsPref.putStringPref (MainActivity.this, LoginDetailsPref.USERNAME, "");
+                        loginDetailsPref.putIntPref (MainActivity.this, LoginDetailsPref.AUDITOR_AGENCY_ID, 0);
+                        Intent intent = new Intent (MainActivity.this, LoginActivity.class);
+                        Constants.username = "";
+                        Constants.auditor_name = "";
+                        Constants.auditor_id_main = 0;
+                        intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity (intent);
+                        overridePendingTransition (R.anim.slide_in_left, R.anim.slide_out_right);
+                    }
+                }).build ();
+
+        tvMessage = (TextView) dialog.getCustomView ().findViewById (R.id.tvMessage);
+        tvMessage.setText (R.string.dialog_logout_content);
+        Utils.setTypefaceToAllViews (MainActivity.this, tvMessage);
+        dialog.show ();
+
+        /*
         AlertDialog.Builder alert = new AlertDialog.Builder (MainActivity.this);
         alert.setMessage ("Are you sure you want to LOGOUT");
         alert.setPositiveButton ("YES", new DialogInterface.OnClickListener () {
             @Override
             public void onClick (DialogInterface dialog, int which) {
+                dialog.dismiss ();
                 LoginDetailsPref loginDetailsPref = LoginDetailsPref.getInstance ();
                 loginDetailsPref.putIntPref (MainActivity.this, LoginDetailsPref.AUDITOR_ID, 0);
                 loginDetailsPref.putStringPref (MainActivity.this, LoginDetailsPref.AUDITOR_NAME, "");
@@ -340,6 +595,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         alert.show ();
+        */
     }
 
     private void showSplashScreen () {
@@ -359,7 +615,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setUpNavigationDrawer () {
-        Toolbar toolbar = (Toolbar) findViewById (R.id.toolbar1);
+        toolbar = (Toolbar) findViewById (R.id.toolbar1);
         toolbar.showOverflowMenu ();
         setSupportActionBar (toolbar);
         ActionBar actionBar = getSupportActionBar ();
@@ -371,36 +627,6 @@ public class MainActivity extends AppCompatActivity {
             actionBar.setDisplayShowTitleEnabled (false);
         } catch (Exception ignored) {
         }
-        ListView mDrawerListView = (ListView) findViewById (R.id.navDrawerList);
-        mDrawerPanel = (RelativeLayout) findViewById (R.id.navDrawerPanel);
-        mDrawerLayout = (DrawerLayout) findViewById (R.id.drawer_layout);
-        ArrayAdapter<String> mAdapter = new ArrayAdapter<> (this, android.R.layout.simple_list_item_1, getResources ().getStringArray (R.array.menulist));
-        mDrawerListView.setAdapter (new NavDrawerAdapter (this, getResources ().getStringArray (R.array.menulist)));
-        mDrawerListView.setOnItemClickListener (new AdapterView.OnItemClickListener () {
-            @Override
-            public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
-                switch (position) {
-                    case 0:
-                        break;
-                }
-                mDrawerLayout.closeDrawer (mDrawerPanel);
-            }
-        });
-        mDrawerToggle = new ActionBarDrawerToggle (this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
-            public void onDrawerOpened (View drawerView) {
-                super.onDrawerOpened (drawerView);
-                //getSupportActionBar().setTitle(getString(R.string.drawer_opened));
-                invalidateOptionsMenu ();
-            }
-
-            public void onDrawerClosed (View view) {
-                super.onDrawerClosed (view);
-                //getSupportActionBar().setTitle(mActivityTitle);
-                invalidateOptionsMenu ();
-            }
-        };
-        mDrawerToggle.setDrawerIndicatorEnabled (true);
-        mDrawerLayout.setDrawerListener (mDrawerToggle);
     }
 
     private void getAtmListFromServer () {
@@ -444,18 +670,19 @@ public class MainActivity extends AppCompatActivity {
                             adapter.notifyDataSetChanged ();
                             if (is_data_received != 0 && json_array_len != 0) {
                                 progressBar.setVisibility (View.GONE);
-                                listViewAllAtm.setVisibility (View.VISIBLE);
+                                recyclerViewAllAtm.setVisibility (View.VISIBLE);
                                 tvNoInternetConnection.setVisibility (View.GONE);
                             } else if (is_data_received != 0 && json_array_len == 0) {
                                 tvNoInternetConnection.setVisibility (View.VISIBLE);
                                 progressBar.setVisibility (View.GONE);
-                                listViewAllAtm.setVisibility (View.GONE);
+                                recyclerViewAllAtm.setVisibility (View.GONE);
                             }
                             if (is_data_received == 0) {
                                 progressBar.setVisibility (View.GONE);
-                                listViewAllAtm.setVisibility (View.GONE);
+                                recyclerViewAllAtm.setVisibility (View.GONE);
                                 tvNoInternetConnection.setVisibility (View.VISIBLE);
                             }
+                            swipeRefreshLayout.setRefreshing (false);
                         }
                     },
                     new Response.ErrorListener () {
@@ -463,7 +690,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onErrorResponse (VolleyError error) {
                             Utils.showLog (Log.ERROR, AppConfigTags.VOLLEY_ERROR, error.toString (), true);
                             progressBar.setVisibility (View.GONE);
-                            listViewAllAtm.setVisibility (View.VISIBLE);
+                            recyclerViewAllAtm.setVisibility (View.VISIBLE);
                             getAtmListFromLocalDatabase ();
                         }
                     }) {
@@ -479,9 +706,46 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
             progressBar.setVisibility (View.GONE);
-            listViewAllAtm.setVisibility (View.VISIBLE);
+            recyclerViewAllAtm.setVisibility (View.VISIBLE);
             getAtmListFromLocalDatabase ();
             Utils.showOkDialog (MainActivity.this, "Seems like there is no internet connection, the app will continue in Offline mode", false);
+        }
+    }
+
+    private void getTimeFromServer () {
+        if (NetworkConnection.isNetworkAvailable (this)) {
+            Utils.showLog (Log.INFO, AppConfigTags.URL, AppConfigURL.URL_GETSERVERTIME, true);
+            StringRequest strRequest = new StringRequest (Request.Method.POST, AppConfigURL.URL_GETSERVERTIME,
+                    new Response.Listener<String> () {
+                        @Override
+                        public void onResponse (String response) {
+                            Utils.showLog (Log.INFO, AppConfigTags.SERVER_RESPONSE, response, true);
+                            if (response != null) {
+                                Constants.server_time = response;
+                            } else {
+                                Utils.showLog (Log.WARN, AppConfigTags.SERVER_RESPONSE, AppConfigTags.DIDNT_RECEIVE_ANY_DATA_FROM_SERVER, true);
+                                Constants.server_time = sdf.format (new Date ());
+                            }
+                        }
+                    },
+                    new Response.ErrorListener () {
+                        @Override
+                        public void onErrorResponse (VolleyError error) {
+                            Utils.showLog (Log.ERROR, AppConfigTags.VOLLEY_ERROR, error.toString (), true);
+                            Constants.server_time = sdf.format (new Date ());
+                        }
+                    }) {
+                @Override
+                protected Map<String, String> getParams () throws AuthFailureError {
+                    Map<String, String> params = new Hashtable<String, String> ();
+                    params.put (AppConfigTags.AUDITOR_ID, String.valueOf (Constants.auditor_id_main));
+                    Utils.showLog (Log.INFO, AppConfigTags.PARAMETERS_SENT_TO_THE_SERVER, "" + params, true);
+                    return params;
+                }
+            };
+            Utils.sendRequest (strRequest, 30);
+        } else {
+            Constants.server_time = sdf.format (new Date ());
         }
     }
 
@@ -492,6 +756,7 @@ public class MainActivity extends AppCompatActivity {
         for (Atm atm : allAtm)
             atmList.add (atm);
         adapter.notifyDataSetChanged ();
+        swipeRefreshLayout.setRefreshing (false);
     }
 
     private void getQuestionsFromJSON () {
@@ -521,6 +786,52 @@ public class MainActivity extends AppCompatActivity {
                         question.setComment_required_for (jsonObject.getString ("comment_required_for"));
                         question.setComment_hint (jsonObject.getString ("comment_hint"));
                     }
+
+                    if (jsonObject.has ("numeric_comment")) {
+                        if (jsonObject.getBoolean ("numeric_comment")) {
+                            question.setNumeric_comment (true);
+                        }
+                    } else {
+                        question.setNumeric_comment (false);
+                    }
+
+                    if (jsonObject.has ("auto_time")) {
+                        if (jsonObject.getBoolean ("auto_time")) {
+                            question.setAuto_time (true);
+                        }
+                    } else {
+                        question.setAuto_time (false);
+                    }
+
+                    if (jsonObject.has ("first_ct_question")) {
+                        if (jsonObject.getBoolean ("first_ct_question")) {
+                            question.setFirst_ct_question (true);
+                            Constants.first_ct_question = question.getQuestion_id ();
+                        }
+                    } else {
+                        question.setFirst_ct_question (false);
+                    }
+
+                    if (jsonObject.has ("make_serial_type")) {
+                        if (jsonObject.getBoolean ("make_serial_type")) {
+                            question.setMake_serial_type (true);
+                        }
+                    } else {
+                        question.setMake_serial_type (false);
+                    }
+
+                    if (jsonObject.has ("image_required_for")) {
+                        question.setImage_required_for (jsonObject.getString ("image_required_for"));
+                    } else {
+                        question.setImage_required_for ("None");
+                    }
+
+                    if (jsonObject.has ("mandatory_comment_not_for")) {
+                        question.setMandatory_comment_not_for (jsonObject.getString ("mandatory_comment_not_for"));
+                    } else {
+                        question.setMandatory_comment_not_for ("None");
+                    }
+
 
                     question.setCt_question (jsonObject.getBoolean ("ct_question"));
                     question.setExtra_options_present (jsonObject.getBoolean ("extra_options_present"));
@@ -613,6 +924,7 @@ public class MainActivity extends AppCompatActivity {
 //            getQuestionListFromLocalDatabase ();
         }
     }
+
     /*
         private void getQuestionListFromLocalDatabase () {
             Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "Getting all the questions from local database", true);
@@ -623,15 +935,89 @@ public class MainActivity extends AppCompatActivity {
         }
     */
     private void showEnterManuallyDialog () {
+
+        final View positiveAction;
+        MaterialDialog dialog = new MaterialDialog.Builder (this)
+                .title (R.string.dialog_enter_manually_title)
+                .customView (R.layout.dialog_enter_manually, true)
+                .positiveText (R.string.dialog_enter_manually_positive)
+                .negativeText (R.string.dialog_enter_manually_negative)
+                .onPositive (new MaterialDialog.SingleButtonCallback () {
+                    @Override
+                    public void onClick (@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss ();
+                        Constants.atm_location_in_manual = etEnterManuallyAtmLocation.getText ().toString ().toUpperCase ();
+
+                        Constants.report.setAtm_id (0);
+                        Constants.report.setAuditor_id (Constants.auditor_id_main);
+                        Constants.report.setAgency_id (Constants.auditor_agency_id);
+                        Constants.report.setAtm_unique_id (etEnterManuallyAtmId.getText ().toString ().toUpperCase ());
+                        Constants.report.setLatitude (String.valueOf (Constants.latitude));
+                        Constants.report.setLongitude (String.valueOf (Constants.longitude));
+
+                        Intent mIntent = null;
+                        if (Utils.isPackageExists (MainActivity.this, "com.google.android.camera")) {
+                            mIntent = new Intent ();
+                            mIntent.setPackage ("com.google.android.camera");
+                            mIntent.setAction (android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        } else {
+                            PackageManager packageManager = getPackageManager ();
+                            String defaultCameraPackage = null;
+                            List<ApplicationInfo> list = packageManager.getInstalledApplications (PackageManager.GET_UNINSTALLED_PACKAGES);
+                            for (int n = 0; n < list.size (); n++) {
+                                if ((list.get (n).flags & ApplicationInfo.FLAG_SYSTEM) == 1) {
+                                    Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "Installed Applications  : " + list.get (n).loadLabel (packageManager).toString (), false);
+                                    Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "package name  : " + list.get (n).packageName, false);
+                                    if (list.get (n).loadLabel (packageManager).toString ().equalsIgnoreCase ("Camera")) {
+                                        defaultCameraPackage = list.get (n).packageName;
+                                        break;
+                                    }
+                                }
+                            }
+                            mIntent = new Intent ();
+                            mIntent.setPackage (defaultCameraPackage);
+                            mIntent.setAction (android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        }
+                        if (mIntent.resolveActivity (getPackageManager ()) != null)
+                            startActivityForResult (mIntent, MainActivity.GEO_IMAGE_REQUEST_CODE);
+                    }
+                }).build ();
+
+        positiveAction = dialog.getActionButton (DialogAction.POSITIVE);
+        etEnterManuallyAtmId = (EditText) dialog.getCustomView ().findViewById (R.id.etEnterManuallyAtmId);
+        etEnterManuallyAtmLocation = (EditText) dialog.getCustomView ().findViewById (R.id.etEnterManuallyLocation);
+        etEnterManuallyAtmId.addTextChangedListener (new TextWatcher () {
+            @Override
+            public void beforeTextChanged (CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged (CharSequence s, int start, int before, int count) {
+                positiveAction.setEnabled (s.toString ().trim ().length () > 0);
+            }
+
+            @Override
+            public void afterTextChanged (Editable s) {
+            }
+        });
+        Utils.setTypefaceToAllViews (MainActivity.this, etEnterManuallyAtmId);
+        int widgetColor = ThemeSingleton.get ().widgetColor;
+        MDTintHelper.setTint (etEnterManuallyAtmId,
+                widgetColor == 0 ? ContextCompat.getColor (this, R.color.accent) : widgetColor);
+        MDTintHelper.setTint (etEnterManuallyAtmLocation,
+                widgetColor == 0 ? ContextCompat.getColor (this, R.color.accent) : widgetColor);
+        dialog.show ();
+        positiveAction.setEnabled (false); // disabled by default
+
+
+/*
         Button btEnterManuallyContinue;
-        final EditText etEnterManuallyAtmId;
-        final EditText etEnterManuallyAtmLocation;
 
         dialogEnterManually = new Dialog (MainActivity.this);
         dialogEnterManually.setContentView (R.layout.dialog_enter_manually);
         dialogEnterManually.setCancelable (true);
         btEnterManuallyContinue = (Button) dialogEnterManually.findViewById (R.id.btEnterManuallyContinue);
-        etEnterManuallyAtmId = (EditText) dialogEnterManually.findViewById (R.id.etEnterManuallyAtmId);
+        etEnterManuallyAtmId = (EditText) dialogEnterManually.findViewById (etEnterManuallyAtmId);
         etEnterManuallyAtmLocation = (EditText) dialogEnterManually.findViewById (R.id.etEnterManuallyLocation);
         Utils.setTypefaceToAllViews (MainActivity.this, etEnterManuallyAtmId);
         dialogEnterManually.getWindow ().setBackgroundDrawable (new ColorDrawable (android.graphics.Color.TRANSPARENT));
@@ -697,6 +1083,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        */
     }
 
     public void onActivityResult (int requestCode, int resultCode, Intent data) {
@@ -779,6 +1166,7 @@ public class MainActivity extends AppCompatActivity {
                         params.put (AppConfigTags.LATITUDE, finalReport.getLatitude ());
                         params.put (AppConfigTags.LONGITUDE, finalReport.getLongitude ());
                         params.put (AppConfigTags.SIGN_IMAGE, finalReport.getSignature_image_string ());
+                        params.put (AppConfigTags.OTHER_IMAGES, finalReport.getOther_images_json ());
 
                         Log.e (AppConfigTags.ATM_ID, String.valueOf (finalReport.getAtm_id ()));
                         Log.e (AppConfigTags.ATM_UNIQUE_ID, finalReport.getAtm_unique_id ());
@@ -793,7 +1181,7 @@ public class MainActivity extends AppCompatActivity {
                         return params;
                     }
                 };
-                Utils.sendRequest (strRequest1, 30);
+                Utils.sendRequest (strRequest1, 100);
             }
         }
     }
@@ -939,11 +1327,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
-
-
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             }
         }
     }
 
+    @Override
+    public void onRefresh () {
+
+    }
 }

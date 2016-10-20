@@ -13,8 +13,8 @@ android {
         applicationId "com.actiknow.ctaudit"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 117
-        versionName "1.1.7"
+        versionCode 119
+        versionName "1.1.9"
         multiDexEnabled true
     }
     buildTypes {
@@ -23,11 +23,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    dexOptions {
+/*
+   dexOptions {
         preDexLibraries = false
         javaMaxHeapSize "4g"
     }
+
+    */
 /*
     afterEvaluate {
         tasks.matching {
@@ -58,6 +60,17 @@ dependencies {
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.kyanogen.signatureview:signature-view:1.0'
+
+    compile 'jp.wasabeef:recyclerview-animators:2.2.4'
+    compile 'com.github.clans:fab:1.6.4'
+    compile('com.mikepenz:materialdrawer:5.6.0@aar') {
+        transitive = true
+    }
+    compile 'com.mikepenz:fontawesome-typeface:4.6.0.3@aar'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    compile 'com.afollestad.material-dialogs:commons:0.9.0.2'
+
+
 }
 // ADD THIS AT THE BOTTOM
 //apply plugin: 'com.google.gms.google-services'

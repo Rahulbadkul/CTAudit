@@ -1,20 +1,23 @@
 package com.actiknow.ctaudit.utils;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -23,8 +26,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actiknow.ctaudit.R;
+import com.actiknow.ctaudit.activity.MainActivity;
 import com.actiknow.ctaudit.app.AppController;
 import com.actiknow.ctaudit.model.Response;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.toolbox.StringRequest;
 
@@ -32,9 +38,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static android.content.Context.ACTIVITY_SERVICE;
 
 /**
  * Created by Admin on 23-12-2015.
@@ -98,6 +108,29 @@ public class Utils {
     }
 
     public static void showOkDialog (final Activity activity, String message, final boolean finish_flag) {
+        TextView tvMessage;
+        MaterialDialog dialog = new MaterialDialog.Builder (activity)
+                .customView (R.layout.dialog_basic, true)
+                .positiveText (R.string.dialog_basic_positive)
+                .onPositive (new MaterialDialog.SingleButtonCallback () {
+                    @Override
+                    public void onClick (@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss ();
+                        if (finish_flag) {
+                            Intent intent = new Intent (activity, MainActivity.class);
+                            intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            activity.startActivity (intent);
+                            activity.overridePendingTransition (R.anim.slide_in_left, R.anim.slide_out_right);
+                        }
+                    }
+                }).build ();
+        tvMessage = (TextView) dialog.getCustomView ().findViewById (R.id.tvMessage);
+        tvMessage.setText (message);
+        Utils.setTypefaceToAllViews (activity, tvMessage);
+        dialog.show ();
+
+
+/*
         AlertDialog.Builder builder = new AlertDialog.Builder (activity);
         builder.setMessage (message)
                 .setCancelable (false)
@@ -105,13 +138,16 @@ public class Utils {
                     public void onClick (DialogInterface dialog, int id) {
                         dialog.dismiss ();
                         if (finish_flag) {
-                            activity.finish ();
+                            Intent intent = new Intent (activity, MainActivity.class);
+                            intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            activity.startActivity (intent);
                             activity.overridePendingTransition (R.anim.slide_in_left, R.anim.slide_out_right);
                         }
                     }
                 });
         AlertDialog alert = builder.create ();
         alert.show ();
+        */
     }
 
     public static void showSnackBar (CoordinatorLayout coordinatorLayout, String message) {
@@ -252,12 +288,29 @@ public class Utils {
     }
 
     public static void showValidationErrorDialog (final Activity activity, List<String> errors) {
-        AlertDialog.Builder builder = new AlertDialog.Builder (activity);
-
         String error_message = "";
         for (int i = 0; i < errors.size (); i++) {
             error_message = android.text.TextUtils.join ("\n", errors);
         }
+
+        MaterialDialog dialog = new MaterialDialog.Builder (activity)
+                .iconRes (android.R.drawable.ic_dialog_alert)
+                .limitIconToDefaultSize ()
+                .title (R.string.dialog_validation_title)
+                .content (error_message)
+                .positiveText (R.string.dialog_basic_positive)
+                .onPositive (new MaterialDialog.SingleButtonCallback () {
+                    @Override
+                    public void onClick (@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss ();
+                    }
+                }).build ();
+
+        dialog.show ();
+
+
+/*
+        AlertDialog.Builder builder = new AlertDialog.Builder (activity);
 
         builder.setMessage (error_message)
                 .setIcon (android.R.drawable.ic_dialog_alert)
@@ -270,6 +323,8 @@ public class Utils {
                 });
         AlertDialog alert = builder.create ();
         alert.show ();
+
+        */
     }
 
     public static boolean isCtNA () {
@@ -298,5 +353,50 @@ public class Utils {
             e.printStackTrace ();
         }
         return false;
+    }
+
+    public static int getHourFromServerTime () {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+        Calendar calendar = Calendar.getInstance ();
+        try {
+            calendar.setTime (simpleDateFormat.parse (Constants.server_time));
+//            Log.e ("date", "" + calendar.get (Calendar.DAY_OF_MONTH));
+//            Log.e ("month", "" + calendar.get (Calendar.MONTH));
+//            Log.e ("year", "" + calendar.get (Calendar.YEAR));
+//            Log.e ("hour", "" + calendar.get (Calendar.HOUR));
+//            Log.e ("minutes", "" + calendar.get (Calendar.MINUTE));
+//            Log.e ("seconds", "" + calendar.get (Calendar.SECOND));
+            return calendar.get (calendar.HOUR_OF_DAY);
+        } catch (ParseException e) {
+            e.printStackTrace ();
+        }
+        return 0;
+    }
+
+    public static float convertPixelsToDp (float px, Context context) {
+        Resources resources = context.getResources ();
+        DisplayMetrics metrics = resources.getDisplayMetrics ();
+        float dp = px / ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+        return dp;
+    }
+
+    public static boolean isEnoughMemory (Activity activity) {
+        // Before doing something that requires a lot of memory,
+        // check to see whether the device is in a low memory state.
+        ActivityManager.MemoryInfo memoryInfo = getAvailableMemory (activity);
+        if (! memoryInfo.lowMemory) {
+            return true;
+            // Do memory intensive work ...
+        } else {
+            return false;
+        }
+    }
+
+    // Get a MemoryInfo object for the device's current memory status.
+    private static ActivityManager.MemoryInfo getAvailableMemory (Activity activity) {
+        ActivityManager activityManager = (ActivityManager) activity.getSystemService (ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo ();
+        activityManager.getMemoryInfo (memoryInfo);
+        return memoryInfo;
     }
 }

@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
     <RelativeLayout
+        android:id="@+id/rlAtmDetail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -70,4 +71,9 @@
             android:textSize="14sp"
             android:visibility="gone"/>
     </RelativeLayout>
+
+    <View
+        android:id="@+id/view4"
+        style="@style/Divider"
+        android:layout_below="@+id/rlAtmDetail"/>
 </RelativeLayout>

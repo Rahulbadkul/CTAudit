@@ -14,9 +14,6 @@ import com.actiknow.ctaudit.model.Report;
 import com.actiknow.ctaudit.utils.AppConfigTags;
 import com.actiknow.ctaudit.utils.Utils;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,7 +22,7 @@ import java.util.Locale;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     // Database Version
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Database Name
     private static final String DATABASE_NAME = "ctAudit";
@@ -61,6 +58,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_GEO_IMAGE = "geo_image";
     private static final String KEY_LATITUDE = "latitude";
     private static final String KEY_LONGITUDE = "longitude";
+    private static final String KEY_OTHER_IMAGES_JSON = "other_images_json";
 
 
     // AUDITOR_LOCATION Table - column names
@@ -83,7 +81,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             + "(" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + KEY_ATM_ID + " INTEGER," + KEY_ATM_UNIQUE_ID + " TEXT," + KEY_AGENCY_ID + " INTEGER,"
             + KEY_AUDITOR_ID + " INTEGER," + KEY_ISSUES_JSON + " BLOB," +
             KEY_GEO_IMAGE + " BLOB," + KEY_LATITUDE + " TEXT," + KEY_LONGITUDE + " TEXT," +
-            KEY_SIGN_IMAGE + " BLOB," + KEY_TIME + " TEXT," + KEY_CREATED_AT + " DATETIME" + ")";
+            KEY_SIGN_IMAGE + " BLOB," + KEY_OTHER_IMAGES_JSON + " BLOB," + KEY_TIME + " TEXT," + KEY_CREATED_AT + " DATETIME" + ")";
 
     // Auditor location table create statement
     private static final String CREATE_TABLE_AUDITOR_LOCATION = "CREATE TABLE " + TABLE_AUDITOR_LOCATION
@@ -312,6 +310,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put (KEY_LATITUDE, report.getLatitude ());
         values.put (KEY_LONGITUDE, report.getLongitude ());
         values.put (KEY_SIGN_IMAGE, report.getSignature_image_string ());
+        values.put (KEY_OTHER_IMAGES_JSON, report.getOther_images_json ());
         values.put (KEY_CREATED_AT, getDateTime ());
         long report_id = db.insert (TABLE_REPORT, null, values);
         return report_id;
@@ -323,56 +322,85 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 KEY_GEO_IMAGE + ", " + KEY_LATITUDE + ", " + KEY_LONGITUDE + ", " + KEY_SIGN_IMAGE + " FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
         String selectQuery2 = "SELECT length(" + KEY_ISSUES_JSON + ") as length FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
         String selectQuery3 = "SELECT " + KEY_ISSUES_JSON + " FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+        String selectQuery4 = "SELECT length(" + KEY_OTHER_IMAGES_JSON + ") as length FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+        String selectQuery5 = "SELECT " + KEY_OTHER_IMAGES_JSON + " FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
         Utils.showLog (Log.DEBUG, AppConfigTags.DATABASE_LOG, "Get Report where ID = " + report_id, true);
 //        Utils.showLog (Log.DEBUG, AppConfigTags.DATABASE_LOG, "query = " + selectQuery2, true);
         Cursor c = db.rawQuery (selectQuery, null);
         Cursor c2 = db.rawQuery (selectQuery2, null);
         Cursor c3 = db.rawQuery (selectQuery3, null);
+        Cursor c4 = db.rawQuery (selectQuery4, null);
+        Cursor c5 = db.rawQuery (selectQuery5, null);
         if (c != null)
             c.moveToFirst ();
-
         if (c2 != null)
             c2.moveToFirst ();
-
         if (c3 != null)
             c3.moveToFirst ();
+        if (c4 != null)
+            c4.moveToFirst ();
+        if (c5 != null)
+            c5.moveToFirst ();
 
 
         String issue_json = "";
+        String other_image_json = "";
 
         if (c2.getInt (c2.getColumnIndex ("length")) > 1000000) {
-            int i = c2.getInt (c2.getColumnIndex ("length")) / 10000000;
-
-
+            int i = c2.getInt (c2.getColumnIndex ("length")) / 1000000;
             int j = 1;
-            Log.e ("value of i", " i = " + i);
+//            Log.e ("value of i", " i = " + i);
             for (int i2 = 0; i2 <= i; i2++) {
                 String query;
                 if (i2 == i) {
-                    int j2 = c2.getInt (c2.getColumnIndex ("length")) - i * 10000000;
+                    int j2 = c2.getInt (c2.getColumnIndex ("length")) - i * 1000000;
                     query = "SELECT substr (" + KEY_ISSUES_JSON + ", " + j + ", " + j2 + ") as str FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
                 } else {
                     query = "SELECT substr (" + KEY_ISSUES_JSON + ", " + j + ", 1000000) as str FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
                 }
-                Log.e ("query", query);
+//                Log.e ("query", query);
                 Cursor cursor = db.rawQuery (query, null);
                 if (cursor != null)
                     cursor.moveToFirst ();
 //                json_substr.add (cursor.getString (cursor.getColumnIndex ("str")));
 
-                Utils.showLog (Log.DEBUG, "IN FOR LOOP", (i2 + 1) + " iteration", true);
+//                Utils.showLog (Log.DEBUG, "IN FOR LOOP", (i2 + 1) + " iteration", true);
 
-                issue_json = issue_json.concat (cursor.getString (cursor.getColumnIndex ("str")));
+                issue_json = issue_json.concat (cursor.getString (cursor.getColumnIndex ("str")).trim ());
                 j = j + 1000000;
-                Log.e ("SUB STRING", cursor.getString (cursor.getColumnIndex ("str")));
+//                Log.e ("SUB STRING", cursor.getString (cursor.getColumnIndex ("str")).trim ());
             }
+        } else {
+            issue_json = c3.getString (c3.getColumnIndex (KEY_ISSUES_JSON));
+        }
 
+        if (c4.getInt (c4.getColumnIndex ("length")) > 1000000) {
+            int k = c4.getInt (c4.getColumnIndex ("length")) / 1000000;
+            int l = 1;
+//            Log.e ("value of k", " k = " + k);
+            for (int k2 = 0; k2 <= k; k2++) {
+                String query;
+                if (k2 == k) {
+                    int l2 = c4.getInt (c4.getColumnIndex ("length")) - k * 1000000;
+                    query = "SELECT substr (" + KEY_OTHER_IMAGES_JSON + ", " + l + ", " + l2 + ") as str FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                } else {
+                    query = "SELECT substr (" + KEY_OTHER_IMAGES_JSON + ", " + l + ", 1000000) as str FROM " + TABLE_REPORT + " WHERE " + KEY_ID + " = " + report_id;
+                }
+//                Log.e ("query", query);
+                Cursor cursor = db.rawQuery (query, null);
+                if (cursor != null)
+                    cursor.moveToFirst ();
+//                json_substr.add (cursor.getString (cursor.getColumnIndex ("str")));
 
-            try {
-                JSONArray jsonArray = new JSONArray (issue_json);
-            } catch (JSONException e) {
-                e.printStackTrace ();
+//                Utils.showLog (Log.DEBUG, "IN FOR LOOP", (k2 + 1) + " iteration", true);
+
+                other_image_json = other_image_json.concat (cursor.getString (cursor.getColumnIndex ("str")).trim ());
+                l = l + 1000000;
+//                Log.e ("SUB STRING", cursor.getString (cursor.getColumnIndex ("str")).trim ());
             }
+        } else {
+            other_image_json = c5.getString (c5.getColumnIndex (KEY_OTHER_IMAGES_JSON));
+        }
 
 
 //            for(int i3=0;i<json_substr.size ();i3++){
@@ -464,11 +492,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             */
 
 
-        } else {
-            issue_json = c3.getString (c3.getColumnIndex (KEY_ISSUES_JSON));
-        }
-
-
         Utils.showLog (Log.DEBUG, "DATABASE LOG", "length of blob" + c2.getInt (c2.getColumnIndex ("length")), true);
 
         Report report = new Report ();
@@ -484,6 +507,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             report.setLatitude (c.getString (c.getColumnIndex (KEY_LATITUDE)));
             report.setLongitude (c.getString (c.getColumnIndex (KEY_LONGITUDE)));
             report.setSignature_image_string (c.getString (c.getColumnIndex (KEY_SIGN_IMAGE)));
+            report.setOther_images_json (other_image_json);
         } catch (Exception e) {
             e.printStackTrace ();
             Utils.showLog (Log.DEBUG, "EXCEPTION", e.getMessage (), true);
@@ -540,6 +564,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put (KEY_LATITUDE, report.getLatitude ());
         values.put (KEY_LONGITUDE, report.getLongitude ());
         values.put (KEY_SIGN_IMAGE, report.getSignature_image_string ());
+        values.put (KEY_OTHER_IMAGES_JSON, report.getOther_images_json ());
         // updating row
         return db.update (TABLE_REPORT, values, KEY_ID + " = ?", new String[] {String.valueOf (report.getReport_id ())});
     }

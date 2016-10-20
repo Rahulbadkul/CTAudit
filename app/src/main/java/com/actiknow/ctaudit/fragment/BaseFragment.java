@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.design.widget.TextInputLayout;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -53,7 +54,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +61,8 @@ import java.util.Map;
 
 public class BaseFragment extends android.support.v4.app.Fragment {
 
-    public static boolean isLast = false;
     final int CAMERA_ACTIVITY = 1;
+    final int OTHER_CAMERA_ACTIVITY = 2;
     Bitmap bp1;
     Bitmap bptemp;
     DatabaseHandler db;
@@ -75,36 +75,34 @@ public class BaseFragment extends android.support.v4.app.Fragment {
     String optionSelected = "";
     List<String> extraOptions = new ArrayList<> ();
     Dialog dialogSign;
+    List<String> otherImagesList = new ArrayList<> ();
     // Store instance variables
-    private String question_text;
     private RadioGroup rgOptions;
-    private int question_id, page;
+    private int page;
     private EditText etComments;
     private TextView tvQuestion;
     private ImageView ivImage1;
     private Button btNext;
     private Button btPrev;
-
     private RelativeLayout rlImage;
     private TextView tvImageRequired;
-
+    private RelativeLayout rlMake;
+    //    private TextView tvMakeRequired;
+    private EditText etMake;
+    private RelativeLayout rlSerial;
+    //    private TextView tvSerialRequired;
+    private EditText etSerial;
+    private RelativeLayout rlOtherImages;
+    private TextView tvOtherImageAdd;
+    private LinearLayout llOtherImages;
+    private TextInputLayout input_layout_comment;
+    private TextInputLayout input_layout_make;
+    private TextInputLayout input_layout_serial;
 
     public static BaseFragment newInstance (int page) {
         BaseFragment fragmentFirst = new BaseFragment ();
         Bundle args = new Bundle ();
         args.putInt (AppConfigTags.PAGE_NUMBER, page);
-        isLast = true;
-        fragmentFirst.setArguments (args);
-        return fragmentFirst;
-    }
-
-    public static BaseFragment newInstance (int page, String question, int question_id) {
-        BaseFragment fragmentFirst = new BaseFragment ();
-        Bundle args = new Bundle ();
-        isLast = false;
-        args.putInt (AppConfigTags.PAGE_NUMBER, page);
-        args.putString (AppConfigTags.QUESTION, question);
-        args.putInt (AppConfigTags.QUESTION_ID, question_id);
         fragmentFirst.setArguments (args);
         return fragmentFirst;
     }
@@ -114,10 +112,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
     public void onCreate (Bundle savedInstanceState) {
         super.onCreate (savedInstanceState);
         page = getArguments ().getInt (AppConfigTags.PAGE_NUMBER, 0);
-        if (! isLast) {
-            question_text = getArguments ().getString (AppConfigTags.QUESTION);
-            question_id = getArguments ().getInt (AppConfigTags.QUESTION_ID);
-        }
     }
 
     // Inflate the view for the fragment based on layout XML
@@ -143,8 +137,32 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             Utils.showLog (Log.DEBUG, "QUESTION EXTRA OPTION PRESENT", " " + question.isExtra_options_present (), true);
             Utils.showLog (Log.DEBUG, "QUESTION EXTRA OPTION SIZE", " " + question.getExtra_options ().size (), true);
 
-            if (question.getQuestion_id () == 14 || question.getQuestion_id () == 22) {
+            if (question.isNumeric_comment ()) {
                 etComments.setInputType (InputType.TYPE_CLASS_NUMBER);
+            }
+
+            if (question.isMake_serial_type ()) {
+                rlMake.setVisibility (View.VISIBLE);
+                rlSerial.setVisibility (View.VISIBLE);
+//                input_layout_serial.setErrorEnabled (true);
+//                input_layout_make.setErrorEnabled (true);
+//                input_layout_serial.setError ("Please Specify");
+//                input_layout_make.setError ("Pleasse Specify");
+
+//                tvMakeRequired.setVisibility (View.VISIBLE);
+//                tvSerialRequired.setVisibility (View.VISIBLE);
+            }
+
+
+//            if (question.getQuestion_id () == 14 || question.getQuestion_id () == 22) {
+//                etComments.setInputType (InputType.TYPE_CLASS_NUMBER);
+//            }
+
+            if (page == Constants.questionsList.size () - 1) {
+                rlImage.setVisibility (View.GONE);
+                rlOtherImages.setVisibility (View.VISIBLE);
+            } else {
+                rlOtherImages.setVisibility (View.GONE);
             }
 
             tvQuestion.setText (question.getQuestion ());
@@ -164,12 +182,10 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     } else {
                         rlImage.setVisibility (View.GONE);
                     }
-
                 } else {
                     rlImage.setVisibility (View.GONE);
                 }
             }
-
 
             switch (question.getQuestion_type ()) {
                 case "Radio":
@@ -192,21 +208,9 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     llChecks.setVisibility (View.GONE);
                     break;
             }
-
-
-///            if (ViewPagerActivity.ct_flag && question.isCt_question ()) {
-///                for (int i = 0; i < rgOptions.getChildCount (); i++) {
-///                    RadioButton btn = (RadioButton) rgOptions.getChildAt (i);
-///                    if (btn.getText ().toString ().equalsIgnoreCase ("N/A") || btn.getText ().toString ().equalsIgnoreCase ("No")) {
-///                        rgOptions.check (i + 1);
-///                    }
-///                }
-///            }
-
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace ();
         }
-
 
         if (page == 0) {
             LinearLayout.LayoutParams param = new LinearLayout.LayoutParams (
@@ -236,8 +240,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             } else
                 ivImage1.setImageResource (R.drawable.image_placeholder);
         }
-
-
         db.closeDB ();
         return view;
     }
@@ -271,14 +273,14 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         }
         Utils.showLog (Log.DEBUG, "question number karman : ", "" + question.getQuestion_id (), true);
         if (visible) {
-            if (question.getQuestion_id () == 20 && etComments.getText ().toString ().length () == 0) {
-                etComments.setHint ("Specify UPS Make and Sr Number");
-            }
-            if (question.getQuestion_id () == 19 && etComments.getText ().toString ().length () == 0) {
-                etComments.setHint ("Specify AC Make");
-            }
+//            if (question.getQuestion_id () == 20 && etComments.getText ().toString ().length () == 0) {
+//                etComments.setHint ("Specify UPS Make and Sr Number");
+//            }
+//            if (question.getQuestion_id () == 19 && etComments.getText ().toString ().length () == 0) {
+//                etComments.setHint ("Specify AC Make");
+//            }
 
-            if (question.getQuestion_id () > 2) {
+            if (question.getQuestion_id () > Constants.first_ct_question) {
                 if (question.isCt_question ()) {
                     if (Utils.isCtNA ()) {
                         if (rgOptions.getCheckedRadioButtonId () == - 1) {
@@ -304,31 +306,29 @@ public class BaseFragment extends android.support.v4.app.Fragment {
     }
 
     public void addRadioButtons (RadioGroup radioGroup, List<String> Options) {
-
         radioGroup.setOrientation (LinearLayout.VERTICAL);
         for (int i = 0; i < Options.size (); i++) {
-            RadioButton rdbtn = new RadioButton (getActivity ());
-            rdbtn.setId ((i + 1));
-            rdbtn.setText (Options.get (i));
-            radioGroup.addView (rdbtn);
+            RadioButton rb = new RadioButton (getActivity ());
+            rb.setId ((i + 1));
+            rb.setText (Options.get (i));
+            radioGroup.addView (rb);
         }
 
+        if (question.isAuto_time ()) {
+            for (int i = 0; i < rgOptions.getChildCount (); i++) {
+                rgOptions.getChildAt (i).setEnabled (false);
+            }
 
-        switch (question.getQuestion_id ()) {
-            case 1:
-                final Calendar cld = Calendar.getInstance ();
-                int time = cld.get (Calendar.HOUR_OF_DAY);
-                Log.e ("time", String.valueOf (time));
-                if (time < 5) {
-                    radioGroup.check (1);
-                } else if (time >= 5 && time < 19) {
-                    radioGroup.check (2);
-                } else if (time >= 19 && time < 23) {
-                    radioGroup.check (3);
-                } else if (time >= 23) {
-                    radioGroup.check (1);
-                }
-                break;
+            int time = Utils.getHourFromServerTime ();
+            if (time < 5) {
+                radioGroup.check (1);
+            } else if (time >= 5 && time < 19) {
+                radioGroup.check (2);
+            } else if (time >= 19 && time < 23) {
+                radioGroup.check (3);
+            } else if (time >= 23) {
+                radioGroup.check (1);
+            }
         }
     }
 
@@ -338,11 +338,9 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             params.setMargins (20, 0, 0, 0);
             CheckBox checkbox = new CheckBox (getActivity ());
             checkbox.setLayoutParams (params);
-//               mAllText.add (checkbox);
             checkbox.setText (ExtraOptions.get (i));
             llChecks.addView (checkbox);
         }
-
     }
 
     public boolean isPackageExists (String targetPackage) {
@@ -351,7 +349,8 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         pm = getActivity ().getPackageManager ();
         packages = pm.getInstalledApplications (0);
         for (ApplicationInfo packageInfo : packages) {
-            if (packageInfo.packageName.equals (targetPackage)) return true;
+            if (packageInfo.packageName.equals (targetPackage))
+                return true;
         }
         return false;
     }
@@ -369,6 +368,20 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                         }
                         ivImage1.setImageBitmap (bp1);
                         break;
+                    case OTHER_CAMERA_ACTIVITY:
+                        ImageView image = null;
+                        File f2 = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
+                        Bitmap thePic = null;
+                        if (f2.exists ()) {
+                            thePic = Utils.compressBitmap (BitmapFactory.decodeFile (f2.getAbsolutePath ()), getActivity ());
+                        }
+                        otherImagesList.add (Utils.bitmapToBase64 (thePic));
+                        image = new ImageView (getActivity ());
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams (500, 375);
+                        params.setMargins (10, 10, 10, 10);
+                        image.setLayoutParams (params);
+                        llOtherImages.addView (image);
+                        image.setImageBitmap (thePic);
                 }
             }
         } catch (Exception e) {
@@ -388,6 +401,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
 
     private void initView (View view) {
         rgOptions = (RadioGroup) view.findViewById (R.id.rgOptions);
+        input_layout_comment = (TextInputLayout) view.findViewById (R.id.input_layout_comment);
         etComments = (EditText) view.findViewById (R.id.etComments);
         btNext = (Button) view.findViewById (R.id.btNextInFragment);
         btPrev = (Button) view.findViewById (R.id.btPrevInFragment);
@@ -399,9 +413,21 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         llChecks = (LinearLayout) view.findViewById (R.id.llChecks);
         rlImage = (RelativeLayout) view.findViewById (R.id.rlImage);
         tvImageRequired = (TextView) view.findViewById (R.id.tvImageRequired);
-        if (question.getQuestion_id () == 14 || question.getQuestion_id () == 22) {
-            etComments.setInputType (InputType.TYPE_CLASS_NUMBER);
-        }
+
+        rlMake = (RelativeLayout) view.findViewById (R.id.rlMake);
+//        tvMakeRequired = (TextView) view.findViewById (tvMakeRequired);
+        input_layout_make = (TextInputLayout) view.findViewById (R.id.input_layout_make);
+        etMake = (EditText) view.findViewById (R.id.etMake);
+
+        rlSerial = (RelativeLayout) view.findViewById (R.id.rlSerial);
+//        tvSerialRequired = (TextView) view.findViewById (tvSerialRequired);
+        input_layout_serial = (TextInputLayout) view.findViewById (R.id.input_layout_serial);
+        etSerial = (EditText) view.findViewById (R.id.etSerial);
+
+        rlOtherImages = (RelativeLayout) view.findViewById (R.id.rlOtherImages);
+        tvOtherImageAdd = (TextView) view.findViewById (R.id.tvOtherImageAdd);
+        llOtherImages = (LinearLayout) view.findViewById (R.id.llOtherImages);
+
     }
 
     private void initListener () {
@@ -410,9 +436,12 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             public void onTextChanged (CharSequence s, int start, int before, int count) {
                 if (! question.getQuestion_type ().equalsIgnoreCase ("Hybrid")) {
                     if (question.isComment_required () && s.length () > 0) {
-                        etComments.setError (null);
+                        input_layout_comment.setError (null);
+                        input_layout_comment.setErrorEnabled (false);
+//                        etComments.setError (null);
                     } else if (question.isComment_required () && s.length () == 0 && optionSelected.equalsIgnoreCase (question.getComment_required_for ())) {
-                        etComments.setError (question.getComment_hint ());
+//                        etComments.setError (question.getComment_hint ());
+                        input_layout_comment.setError (question.getComment_hint ());
                     }
                 }
             }
@@ -426,7 +455,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             public void afterTextChanged (Editable s) {
             }
         });
-
         sbRating.setOnSeekBarChangeListener (new SeekBar.OnSeekBarChangeListener () {
             public void onStopTrackingTouch (SeekBar bar) {
                 int value = bar.getProgress (); // the value of the seekBar progress
@@ -446,7 +474,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                 }
             }
         });
-
         rgOptions.setOnCheckedChangeListener (new RadioGroup.OnCheckedChangeListener () {
             @Override
             public void onCheckedChanged (RadioGroup group, int checkedId) {
@@ -455,13 +482,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     if (btn.getId () == checkedId) {
                         String text = btn.getText ().toString ();
                         optionSelected = text;
-
-///                        if (page == 1 && (optionSelected.equalsIgnoreCase ("N/A") || optionSelected.equalsIgnoreCase ("No"))){
-///                            ViewPagerActivity.ct_flag = true;
-///                        } else {
-///                            ViewPagerActivity.ct_flag = false;
-///                        }
-
                         if (question.isExtra_options_present () && optionSelected.equalsIgnoreCase (question.getExtra_option_required_for ())) {
                             llChecks.setVisibility (View.VISIBLE);
                         } else {
@@ -475,21 +495,37 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                                 }
                             }
                         }
-
 //                        Utils.showLog (Log.DEBUG, "SELECTED OPTION", optionSelected, true);
                         if (question.isComment_required () && optionSelected.equalsIgnoreCase (question.getComment_required_for ())) {
-                            etComments.setError (question.getComment_hint ());
+//                            etComments.setError (question.getComment_hint ());
+                            input_layout_comment.setError (question.getComment_hint ());
                         } else {
-                            etComments.setError (null);
+                            input_layout_comment.setError (null);
+                            input_layout_comment.setErrorEnabled (false);
+//                            etComments.setError (null);
                         }
 
-                        if (question.getQuestion_id () == 2) {
-                            if (optionSelected.equalsIgnoreCase ("N/A")) {
-                                question.setImage_required (false);
-                                tvImageRequired.setVisibility (View.GONE);
-                            } else {
-                                question.setImage_required (true);
-                                tvImageRequired.setVisibility (View.VISIBLE);
+                        if (question.isFirst_ct_question ()) {
+                            switch (optionSelected) {
+                                case "N/A":
+                                    question.setImage_required (false);
+                                    tvImageRequired.setVisibility (View.GONE);
+                                    break;
+                                case "Yes":
+                                    Utils.showOkDialog (getActivity (), "Please take a full image of the CT", false);
+                                    question.setImage_required (true);
+                                    tvImageRequired.setVisibility (View.VISIBLE);
+                                    break;
+                                case "No":
+                                    Utils.showOkDialog (getActivity (), "Please take image of empty lobby", false);
+                                    question.setImage_required (true);
+                                    tvImageRequired.setVisibility (View.VISIBLE);
+                                    break;
+                                default:
+                                    question.setImage_required (true);
+                                    tvImageRequired.setVisibility (View.VISIBLE);
+                                    break;
+
                             }
                         }
 
@@ -502,6 +538,45 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                                 tvImageRequired.setVisibility (View.GONE);
                             }
                         }
+
+                        if (question.getQuestion_id () == 29) {
+                            if (! optionSelected.equalsIgnoreCase ("N/A")) {
+                                question.setImage_required (true);
+                                tvImageRequired.setVisibility (View.VISIBLE);
+                            } else {
+                                question.setImage_required (false);
+                                tvImageRequired.setVisibility (View.GONE);
+                            }
+                        }
+
+
+                        if (question.isMake_serial_type ()) {
+                            if (optionSelected.equalsIgnoreCase (question.getMandatory_comment_not_for ())) {
+                                input_layout_serial.setErrorEnabled (false);
+                                input_layout_make.setErrorEnabled (false);
+                                input_layout_serial.setError (null);
+                                input_layout_make.setError (null);
+//                                tvSerialRequired.setVisibility (View.GONE);
+//                                tvMakeRequired.setVisibility (View.GONE);
+                            } else {
+                                input_layout_serial.setErrorEnabled (true);
+                                input_layout_make.setErrorEnabled (true);
+                                input_layout_serial.setError ("Please Specify");
+                                input_layout_make.setError ("Please Specify");
+//                                tvSerialRequired.setVisibility (View.VISIBLE);
+//                                tvMakeRequired.setVisibility (View.VISIBLE);
+                            }
+                        }
+
+//                        if (question.isImage_required ()) {
+//                            if (optionSelected.equalsIgnoreCase (question.getImage_required_for ())) {
+//                                question.setImage_required (true);
+//                                tvImageRequired.setVisibility (View.VISIBLE);
+//                            } else {
+//                                question.setImage_required (false);
+//                                tvImageRequired.setVisibility (View.GONE);
+//                            }
+//                        }
                         return;
                     }
                 }
@@ -562,11 +637,30 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     extra_option_response = android.text.TextUtils.join (",", extraOptions);
                 }
 
-
                 if (validate ()) {
-                    etComments.setError (null);
+                    input_layout_comment.setError (null);
+                    input_layout_comment.setErrorEnabled (false);
+//                    etComments.setError (null);
                     final String image = Utils.bitmapToBase64 (bp1);
                     Utils.showLog (Log.DEBUG, AppConfigTags.PAGE_NUMBER, "" + page, true);
+
+                    Response response = new Response ();
+                    response.setQuestion_id (question.getQuestion_id ());
+                    response.setQuestion (question.getQuestion ());
+                    response.setQuestion_type (question.getQuestion_type ());
+                    response.setResponse_text (optionSelected);
+                    if (page == 0) {
+                        response.setComment (etComments.getText ().toString () + " " + Constants.atm_location_in_manual);
+                    } else if (question.isMake_serial_type ()) {
+                        response.setComment (etComments.getText ().toString () + " - Make: " + etMake.getText ().toString () + " - Sr Number: " + etSerial.getText ().toString ());
+                    } else {
+                        response.setComment (etComments.getText ().toString ());
+                    }
+
+                    response.setImage_str (image);
+                    response.setExtra_response_text (extra_option_response);
+                    Constants.responseList.add (page, response);
+
                     Utils.showLog (Log.DEBUG, "KARMAN " + "question_id", "" + question.getQuestion_id (), true);
                     Utils.showLog (Log.DEBUG, "KARMAN " + "question_name", "" + question.getQuestion (), true);
                     Utils.showLog (Log.DEBUG, "KARMAN " + "response_text", optionSelected, true);
@@ -574,20 +668,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     Utils.showLog (Log.DEBUG, "KARMAN " + "comment", etComments.getText ().toString (), true);
                     Utils.showLog (Log.DEBUG, "KARMAN " + "image", image, true);
                     Utils.showLog (Log.DEBUG, "KARMAN " + "extra_options", extra_option_response, true);
-
-
-                    Response response = new Response ();
-                    response.setQuestion_id (question.getQuestion_id ());
-                    response.setQuestion (question.getQuestion ());
-                    response.setQuestion_type (question.getQuestion_type ());
-                    response.setResponse_text (optionSelected);
-                    if (page == 0)
-                        response.setComment (etComments.getText ().toString () + " " + Constants.atm_location_in_manual);
-                    else
-                        response.setComment (etComments.getText ().toString ());
-                    response.setImage_str (image);
-                    response.setExtra_response_text (extra_option_response);
-                    Constants.responseList.add (page, response);
 
 
                     if (page == Constants.questionsList.size () - 1) {
@@ -612,105 +692,24 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                         } catch (JSONException e) {
                             e.printStackTrace ();
                         }
+
+                        JSONArray jsonArrayOtherImages = new JSONArray ();
+                        try {
+                            for (int i = 0; i < otherImagesList.size (); i++) {
+                                JSONObject jsonObject = new JSONObject ();
+                                jsonObject.put ("image", otherImagesList.get (i));
+//                                jsonObject.put ("image", "helo");
+                                jsonArrayOtherImages.put (jsonObject);
+                            }
+                        } catch (JSONException e) {
+                            Utils.showLog (Log.ERROR, "JSON EXCEPTION", e.getMessage (), true);
+                        }
+                        Constants.report.setOther_images_json (String.valueOf (jsonArrayOtherImages));
                         Constants.report.setResponses_json_array (String.valueOf (jsonArray));
                         showSignatureDialog ();
                     } else {
                         ViewPagerActivity.nextPage ();
                     }
-
-
-
-
-
-
-
-
-/*
-
-
-
-//                        Utils.showToast (getActivity (), "Please select an option");
-                        if (etComments.getText ().toString ().length () != 0) {
-                            etComments.setError (null);
-                            ViewPagerActivity.nextPage ();
-
-                            for (int i = 0; i < llChecks.getChildCount (); i++) {
-                                View nextChild = llChecks.getChildAt (i);
-                                if (nextChild instanceof CheckBox) {
-                                    CheckBox check = (CheckBox) nextChild;
-                                    if (check.isChecked ()) {
-                                        extraOptions.add (check.getText ().toString ());
-                                    }
-                                }
-                            }
-
-                            final String image = Utils.bitmapToBase64 (bp1);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.PAGE_NUMBER, "" + page, true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.QUESTION_ID, "" + question.getQuestion_id (), true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.QUESTION, "" + question.getQuestion (), true);
-                            Utils.showLog (Log.DEBUG, "SELECTED OPTION", optionSelected, true);
-                            Utils.showLog (Log.DEBUG, "QUESTION_TYPE", question.getQuestion_type (), true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.COMMENT, etComments.getText ().toString (), true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.IMAGE, image, true);
-
-//                            String extra_option_response = "";
-                            for (int i=0;i<extraOptions.size ();i++){
-                                extra_option_response  = android.text.TextUtils.join (",", extraOptions);
-                            }
-                            Utils.showLog (Log.DEBUG, "EXTRA OPTIONS", extra_option_response, true);
-
-                            /*
-                        Response response = new Response ();
-                        response.setResponse_auditor_id (Constants.auditor_id_main);
-                        response.setResponse_agency_id (Constants.atm_agency_id);
-                        response.setResponse_atm_unique_id (Constants.atm_unique_id);
-                        response.setResponse_question_id (question_id);
-                        response.setResponse_question (question_text);
-                        response.setResponse_switch_flag (switch_flag);
-                        if (page == 0)
-                            response.setResponse_comment (etComments.getText ().toString () + " " + Constants.atm_location_in_manual);
-                        else
-                            response.setResponse_comment (etComments.getText ().toString ());
-                        response.setResponse_image1 (image1);
-                        response.setResponse_image2 (image2);
-                        Constants.responseList.add (page, response);
-
-                        } else {
-                            etComments.setError (null);
-                            ViewPagerActivity.nextPage ();
-
-                            final String image = Utils.bitmapToBase64 (bp1);
-
-                            Utils.showLog (Log.DEBUG, AppConfigTags.PAGE_NUMBER, "" + page, true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.AUDITOR_ID, "" + Constants.auditor_id_main, true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.QUESTION_ID, "" + question.getQuestion_id (), true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.QUESTION, "" + question.getQuestion (), true);
-                            Utils.showLog (Log.DEBUG, "SELECTED OPTION", optionSelected, true);
-                            Utils.showLog (Log.DEBUG, "QUESTION_TYPE", question.getQuestion_type (), true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.COMMENT, etComments.getText ().toString (),true);
-                            Utils.showLog (Log.DEBUG, AppConfigTags.IMAGE, image, true);
-
-                            Utils.showLog (Log.DEBUG, "EXTRA OPTIONS", extra_option_response, true);
-
-/*
-                    Response response = new Response ();
-                    response.setResponse_auditor_id (Constants.auditor_id_main);
-                    response.setResponse_agency_id (Constants.atm_agency_id);
-                    response.setResponse_atm_unique_id (Constants.atm_unique_id);
-                    response.setResponse_question_id (question_id);
-                    response.setResponse_question (question_text);
-                    response.setResponse_switch_flag (switch_flag);
-                    if (page == 0)
-                        response.setResponse_comment (etComments.getText ().toString () + " " + Constants.atm_location_in_manual);
-                    else
-                        response.setResponse_comment (etComments.getText ().toString ());
-                    response.setResponse_image1 (image1);
-                    response.setResponse_image2 (image2);
-                    Constants.responseList.add (page, response);
-
-                        }
-*/
-
                 }
             }
         });
@@ -719,7 +718,104 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             public void onClick (View v) {
                 Utils.hideSoftKeyboard (getActivity ());
                 ViewPagerActivity.prevPage ();
+            }
+        });
 
+        tvOtherImageAdd.setOnClickListener (new View.OnClickListener () {
+            @Override
+            public void onClick (View v) {
+                if (otherImagesList.size () < 5) {
+                    Intent mIntent = null;
+                    if (isPackageExists ("com.google.android.camera")) {
+                        mIntent = new Intent ();
+                        mIntent.setPackage ("com.google.android.camera");
+                        mIntent.setAction (android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    } else {
+                        PackageManager packageManager = getActivity ().getPackageManager ();
+                        String defaultCameraPackage = null;
+                        List<ApplicationInfo> list = packageManager.getInstalledApplications (PackageManager.GET_UNINSTALLED_PACKAGES);
+                        for (int n = 0; n < list.size (); n++) {
+                            if ((list.get (n).flags & ApplicationInfo.FLAG_SYSTEM) == 1) {
+                                Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "Installed Applications  : " + list.get (n).loadLabel (packageManager).toString (), false);
+                                Utils.showLog (Log.DEBUG, AppConfigTags.TAG, "package name  : " + list.get (n).packageName, false);
+                                if (list.get (n).loadLabel (packageManager).toString ().equalsIgnoreCase ("Camera")) {
+                                    defaultCameraPackage = list.get (n).packageName;
+                                    break;
+                                }
+                            }
+                        }
+                        mIntent = new Intent ();
+                        mIntent.setPackage (defaultCameraPackage);
+                        mIntent.setAction (android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        File f = new File (Environment.getExternalStorageDirectory () + File.separator + "img.jpg");
+                        mIntent.putExtra (MediaStore.EXTRA_OUTPUT, Uri.fromFile (f));
+                    }
+                    if (mIntent.resolveActivity (getActivity ().getPackageManager ()) != null)
+                        startActivityForResult (mIntent, OTHER_CAMERA_ACTIVITY);
+                } else {
+                    Utils.showOkDialog (getActivity (), "Sorry you can add atmost 5 images", false);
+                }
+            }
+        });
+
+        etMake.addTextChangedListener (new TextWatcher () {
+            @Override
+            public void onTextChanged (CharSequence s, int start, int before, int count) {
+                input_layout_make.setError (null);
+                input_layout_make.setErrorEnabled (false);
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void beforeTextChanged (CharSequence s, int start, int count, int after) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void afterTextChanged (Editable s) {
+
+                // TODO Auto-generated method stub
+            }
+        });
+        etSerial.addTextChangedListener (new TextWatcher () {
+            @Override
+            public void onTextChanged (CharSequence s, int start, int before, int count) {
+                input_layout_serial.setError (null);
+                input_layout_serial.setErrorEnabled (false);
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void beforeTextChanged (CharSequence s, int start, int count, int after) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void afterTextChanged (Editable s) {
+
+                // TODO Auto-generated method stub
+            }
+        });
+        etComments.addTextChangedListener (new TextWatcher () {
+            @Override
+            public void onTextChanged (CharSequence s, int start, int before, int count) {
+                input_layout_comment.setError (null);
+                input_layout_comment.setErrorEnabled (false);
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void beforeTextChanged (CharSequence s, int start, int count, int after) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void afterTextChanged (Editable s) {
+
+                // TODO Auto-generated method stub
             }
         });
     }
@@ -732,39 +828,43 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             case "Radio":
                 if (optionSelected.length () == 0) {
                     error.add ("Select an option");
-//                    Utils.showToast (getActivity (), "Please select an option");
                     validate = false;
                 }
                 if (question.isImage_required () && Utils.bitmapToBase64 (bp1).length () == 0) {
                     error.add ("Select an image");
-//                    Utils.showToast (getActivity (), "Select an image");
                     validate = false;
                 }
-///                if (question.isImage_required () && Utils.bitmapToBase64 (bp1).length () == 0 && ViewPagerActivity.ct_flag && question.isCt_question ()) {
-/////                    error.add ("Select an image");
-/////                    Utils.showToast (getActivity (), "Select an image");
-///                    validate = true;
-///                }
                 if (question.isComment_required () && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () == 0) {
                     error.add ("Enter the value in comment");
-//                    Utils.showToast (getActivity (), "Enter the value in comment");
                     validate = false;
                 }
                 if (question.getQuestion_id () == 14 && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () < 6) {
                     error.add ("Enter a valid number (Atleast 6 digit)");
-//                    Utils.showToast (getActivity (), "Select atleast one value");
                     validate = false;
                 }
-                if (question.getQuestion_id () == 19 && etComments.getText ().toString ().length () == 0) {
-                    error.add ("Enter AC Make in comments");
-//                    Utils.showToast (getActivity (), "Select atleast one value");
-                    validate = false;
+//                if (question.getQuestion_id () == 19 && etComments.getText ().toString ().length () == 0) {
+//                    error.add ("Enter AC Make in comments");
+//                    validate = false;
+//                }
+//                if (question.getQuestion_id () == 20 && etComments.getText ().toString ().length () == 0) {
+//                    error.add ("Enter UPS Make and Sr Number in comments");
+//                    validate = false;
+//                }
+
+
+                if (question.isMake_serial_type () && ! question.getMandatory_comment_not_for ().equalsIgnoreCase (optionSelected)) {
+                    if (etMake.getText ().toString ().length () == 0) {
+                        error.add ("Please specify make in comments");
+                        validate = false;
+                    }
+                    if (etSerial.getText ().toString ().length () == 0) {
+                        error.add ("Please specify serial in comments");
+                        validate = false;
+                    }
+
                 }
-                if (question.getQuestion_id () == 20 && etComments.getText ().toString ().length () == 0) {
-                    error.add ("Enter UPS Make and Sr Number in comments");
-//                    Utils.showToast (getActivity (), "Select atleast one value");
-                    validate = false;
-                }
+
+
                 if (error.size () > 0) {
                     Utils.showValidationErrorDialog (getActivity (), error);
                 }
@@ -772,22 +872,18 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             case "Hybrid":
                 if (optionSelected.length () == 0) {
                     error.add ("Select an option");
-//                    Utils.showToast (getActivity (), "Please select an option");
                     validate = false;
                 }
                 if (question.isImage_required () && Utils.bitmapToBase64 (bp1).length () == 0) {
                     error.add ("Select an image");
-//                    Utils.showToast (getActivity (), "Select an image");
                     validate = false;
                 }
                 if (question.isComment_required () && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () == 0) {
                     error.add ("Enter the value in comment");
-//                    Utils.showToast (getActivity (), "Enter the value in comment");
                     validate = false;
                 }
                 if (optionSelected.equalsIgnoreCase (question.getExtra_option_required_for ()) && extraOptions.size () == 0) {
                     error.add ("Select atleast one value");
-//                    Utils.showToast (getActivity (), "Select atleast one value");
                     validate = false;
                 }
                 if (error.size () > 0) {
@@ -797,12 +893,10 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             case "Blank":
                 if (question.isComment_required () && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () == 0) {
                     error.add ("Enter the value in comment");
-//                    Utils.showToast (getActivity (), "Enter the value in comment");
                     validate = false;
                 }
                 if (question.isImage_required () && Utils.bitmapToBase64 (bp1).length () == 0) {
                     error.add ("Select an image");
-//                    Utils.showToast (getActivity (), "Select an image");
                     validate = false;
                 }
                 if (error.size () > 0) {
@@ -812,12 +906,10 @@ public class BaseFragment extends android.support.v4.app.Fragment {
             case "Rating":
                 if (question.isComment_required () && question.getComment_required_for ().equalsIgnoreCase (optionSelected) && etComments.getText ().toString ().length () == 0) {
                     error.add ("Enter the value in comment");
-//                    Utils.showToast (getActivity (), "Enter the value in comment");
                     validate = false;
                 }
                 if (question.isImage_required () && Utils.bitmapToBase64 (bp1).length () == 0) {
                     error.add ("Select an Image");
-//                    Utils.showToast (getActivity (), "Select an Image");
                     validate = false;
                 }
                 if (error.size () > 0) {
@@ -897,6 +989,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                                             break;
                                     }
                                 } catch (JSONException e) {
+                                    db.createReport (report);
                                     e.printStackTrace ();
                                 }
                             } else {
@@ -927,6 +1020,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     params.put (AppConfigTags.LATITUDE, report.getLatitude ());
                     params.put (AppConfigTags.LONGITUDE, report.getLongitude ());
                     params.put (AppConfigTags.SIGN_IMAGE, report.getSignature_image_string ());
+                    params.put (AppConfigTags.OTHER_IMAGES, report.getOther_images_json ());
 
                     Log.e (AppConfigTags.ATM_ID, String.valueOf (report.getAtm_id ()));
                     Log.e (AppConfigTags.ATM_UNIQUE_ID, report.getAtm_unique_id ());
@@ -936,6 +1030,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
 //                        Log.e (AppConfigTags.GEO_IMAGE, finalReport.getGeo_image_string ());
                     Log.e (AppConfigTags.LATITUDE, report.getLatitude ());
                     Log.e (AppConfigTags.LONGITUDE, report.getLongitude ());
+                    Log.e (AppConfigTags.OTHER_IMAGES, report.getOther_images_json ());
 //                        Log.e (AppConfigTags.SIGN_IMAGE, finalReport.getSignature_image_string ());
 
 
@@ -943,7 +1038,7 @@ public class BaseFragment extends android.support.v4.app.Fragment {
                     return params;
                 }
             };
-            Utils.sendRequest (strRequest1, 300);
+            Utils.sendRequest (strRequest1, 100);
             Utils.showOkDialog (getActivity (), "Your responses have been saved" +
                     " and will be uploaded in the background", true);
         } else {

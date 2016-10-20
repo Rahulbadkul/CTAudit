@@ -3,15 +3,14 @@ package com.actiknow.ctaudit.activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.ColorRes;
-import android.support.annotation.DimenRes;
-import android.support.annotation.IntegerRes;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -37,10 +36,11 @@ import java.util.Map;
 public class LoginActivity extends AppCompatActivity {
     TextView tvForgetPassword;
     EditText etUsername, etPassword;
-    Button btLogin;
+    TextView tvLogin;
     ProgressDialog progressDialog;
     CoordinatorLayout coordinatorLayout;
-//    MorphingButton btLogin;
+    //    MorphingButton btLogin;
+    TextInputLayout input_layout_password, input_layout_email;
 
     @Override
     protected void onCreate (Bundle savedInstanceState) {
@@ -56,7 +56,9 @@ public class LoginActivity extends AppCompatActivity {
         tvForgetPassword = (TextView) findViewById (R.id.tvForgetPassword);
         etUsername = (EditText) findViewById (R.id.etUsername);
         etPassword = (EditText) findViewById (R.id.etPassword);
-        btLogin = (Button) findViewById (R.id.btLogin);
+        tvLogin = (TextView) findViewById (R.id.tvLogin);
+        input_layout_email = (TextInputLayout) findViewById (R.id.input_layout_email);
+        input_layout_password = (TextInputLayout) findViewById (R.id.input_layout_password);
     }
 
     private void initData () {
@@ -65,6 +67,48 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initListener () {
+        etPassword.addTextChangedListener (new TextWatcher () {
+            @Override
+            public void onTextChanged (CharSequence s, int start, int before, int count) {
+                input_layout_password.setError (null);
+                input_layout_password.setErrorEnabled (false);
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void beforeTextChanged (CharSequence s, int start, int count, int after) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void afterTextChanged (Editable s) {
+
+                // TODO Auto-generated method stub
+            }
+        });
+
+        etUsername.addTextChangedListener (new TextWatcher () {
+            @Override
+            public void onTextChanged (CharSequence s, int start, int before, int count) {
+                input_layout_email.setError (null);
+                input_layout_email.setErrorEnabled (false);
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void beforeTextChanged (CharSequence s, int start, int count, int after) {
+
+                // TODO Auto-generated method stub
+            }
+
+            @Override
+            public void afterTextChanged (Editable s) {
+
+                // TODO Auto-generated method stub
+            }
+        });
+
         tvForgetPassword.setOnTouchListener (new View.OnTouchListener () {
             @Override
             public boolean onTouch (View v, MotionEvent event) {
@@ -76,7 +120,7 @@ public class LoginActivity extends AppCompatActivity {
                 return true;
             }
         });
-        btLogin.setOnClickListener (new View.OnClickListener () {
+        tvLogin.setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick (View v) {
                 Utils.hideSoftKeyboard (LoginActivity.this);
@@ -85,12 +129,18 @@ public class LoginActivity extends AppCompatActivity {
                 if (status_username == 1 && status_password == 1) {
                     sendLoginDetailsToServer ();
                 }
-                if (status_username == 0)
-                    etUsername.setError ("Enter a Username");
-                if (status_username == 2)
-                    etUsername.setError ("Enter correct Username");
-                if (status_password == 0)
-                    etPassword.setError ("Enter the password");
+                if (status_username == 0) {
+                    input_layout_email.setError ("Enter a Username");
+//                    etUsername.setError ("Enter a Username");
+                }
+                if (status_username == 2) {
+                    input_layout_email.setError ("Enter correct Username");
+//                    etUsername.setError ("Enter correct Username");
+                }
+                if (status_password == 0) {
+                    input_layout_password.setError ("Enter the password");
+//                    etPassword.setError ("Enter the password");
+                }
             }
         });
     }
@@ -173,17 +223,4 @@ public class LoginActivity extends AppCompatActivity {
         finish ();
         overridePendingTransition (R.anim.slide_in_left, R.anim.slide_out_right);
     }
-
-    public int dimen (@DimenRes int resId) {
-        return (int) getResources ().getDimension (resId);
-    }
-
-    public int color (@ColorRes int resId) {
-        return getResources ().getColor (resId);
-    }
-
-    public int integer (@IntegerRes int resId) {
-        return getResources ().getInteger (resId);
-    }
-
 }
