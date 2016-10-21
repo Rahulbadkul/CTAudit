@@ -28,7 +28,6 @@
     <string name="dialog_basic_positive">Ok</string>
 
     <string name="dialog_validation_title">Validation Error</string>
-    <string name="dialog_validation_content"></string>
 
 
 </resources>
