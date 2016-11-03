@@ -230,7 +230,6 @@ public class BaseFragment extends android.support.v4.app.Fragment {
         } else {
             btNext.setText ("NEXT");
         }
-
         Utils.setTypefaceToAllViews (getActivity (), tvQuestion);
         if (savedInstanceState != null) {
             bptemp = savedInstanceState.getParcelable ("BitmapImage1");
