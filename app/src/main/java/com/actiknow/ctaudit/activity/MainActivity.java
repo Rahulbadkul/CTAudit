@@ -129,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     CoordinatorLayout clMain;
     EditText etEnterManuallyAtmId;
     EditText etEnterManuallyAtmLocation;
+    SearchView searchView;
     // Action Bar components
     private List<Atm> atmList = new ArrayList<> ();
     private AllAtmAdapter adapter;
@@ -190,6 +191,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         Constants.server_time = sdf.format (new Date ());
         swipeRefreshLayout.setRefreshing (false);
         fabMenu.setClosedOnTouchOutside (true);
+
+
     }
 
     @Override
@@ -378,6 +381,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         result = new DrawerBuilder ()
                 .withActivity (this)
                 .withAccountHeader (headerResult)
+
 //                .withToolbar (toolbar)
 //                .withItemAnimator (new AlphaCrossFadeAnimator ())
                 .addDrawerItems (
@@ -457,8 +461,33 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         client.disconnect ();
     }
 
+/*
+    @Override
+    public boolean onKeyDown (int keyCode, KeyEvent event) {
+        Log.e ("karman", "in key down function");
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            Log.e ("karman", "in key down function in keycode back");
+            if (! searchView.isIconified ()) {
+                Log.e ("karman", "in key down function in is iconified if statement");
+                Utils.hideSoftKeyboard (MainActivity.this);
+                searchView.setIconified (true);
+            } else{
+              onBackPressed ();
+            }
+            return true;
+        }
+        return super.onKeyDown (keyCode, event);
+    }
+
+*/
+
     @Override
     public void onBackPressed () {
+//        Utils.hideSoftKeyboard (MainActivity.this);
+//        if (! searchView.isIconified ()) {
+//            searchView.setIconified (true);
+//        } else
+//        Log.e ("karman", "in onbackpressed button");
         if (result != null && result.isDrawerOpen ()) {
             result.closeDrawer ();
         } else {
@@ -472,11 +501,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         getMenuInflater ().inflate (R.menu.menu_main, menu);
 
         SearchManager searchManager = (SearchManager) getSystemService (Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem (R.id.action_search).getActionView ();
+        searchView = (SearchView) menu.findItem (R.id.action_search).getActionView ();
         if (null != searchView) {
             searchView.setSearchableInfo (searchManager.getSearchableInfo (getComponentName ()));
 //            searchView.setIconifiedByDefault (false);
         }
+
 
 //        final int searchBarId = searchView.getContext ().getResources ().getIdentifier ("android:id/search_bar", null, null);
 //        LinearLayout searchBar = (LinearLayout) searchView.findViewById (searchBarId);
@@ -485,6 +515,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 //        et.getBackground ().setColorFilter (R.color.text_color_grey_dark,null);
 //        et.setBackgroundColor (getResources ().getColor (R.color.text_color_grey_light)); // ← If you just want a color
 //        et.setBackground (getResources ().getDrawable (R.drawable.layout_search_edittext));
+
+//        et.setFocusableInTouchMode (true);
+//        et.setFocusable (true);
 
         LinearLayout searchBar = (LinearLayout) searchView.findViewById (R.id.search_bar);
         searchBar.setLayoutTransition (new LayoutTransition ());
@@ -505,6 +538,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         return super.onCreateOptionsMenu (menu);
     }
+
 
     @Override
     public boolean onOptionsItemSelected (MenuItem item) {
